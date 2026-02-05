@@ -42,7 +42,7 @@ class _VisageHomeScratchCardState extends State<VisageHomeScratchCard> {
             children: [
               // 1. 맨 아래: 컬러풀 이미지
               _buildColorfulCard(),
-              
+
               // 2. 맨 위: 회색 레이어 (마우스 경로 제외)
               RepaintBoundary(
                 child: CustomPaint(
@@ -62,60 +62,16 @@ class _VisageHomeScratchCardState extends State<VisageHomeScratchCard> {
     );
   }
 
-  // 임시 컬러풀 카드 (나중에 실제 컴카드로 교체)
+  // 컴카드 이미지
   Widget _buildColorfulCard() {
-    return Container(
+    return SizedBox(
       width: 800,
       height: 500,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.purple.shade400,
-            Colors.blue.shade400,
-            Colors.pink.shade300,
-            Colors.orange.shade300,
-          ],
-        ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 4),
-              ),
-              child: const Icon(
-                Icons.person,
-                size: 60,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'SAMPLE NAME',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Actor • Model • Influencer',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
+      child: Image.asset(
+        'assets/image/example.jpeg',
+        width: 800,
+        height: 500,
+        fit: BoxFit.cover,
       ),
     );
   }
@@ -134,33 +90,25 @@ class _GrayscaleOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // saveLayer 시작
-    canvas.saveLayer(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint(),
-    );
+    canvas.saveLayer(Rect.fromLTWH(0, 0, size.width, size.height), Paint());
 
-    // 전체를 회색으로 채우기
+    // 전체를 반투명 회색으로 채우기 (실루엣이 보이도록)
     final grayPaint = Paint()
-      ..color = const Color(0xFFCCCCCC) // 밝은 회색
+      ..color =
+          const Color(0xF0EEEEEE) // 82% 불투명도의 밝은 회색
       ..style = PaintingStyle.fill;
-    
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      grayPaint,
-    );
+
+    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), grayPaint);
 
     // 마우스가 지나간 영역을 투명하게 제거
     if (revealedPoints.isNotEmpty) {
       final erasePaint = Paint()
-        ..blendMode = BlendMode.clear // 완전히 제거
+        ..blendMode = BlendMode
+            .clear // 완전히 제거
         ..style = PaintingStyle.fill;
 
       for (final point in revealedPoints) {
-        canvas.drawCircle(
-          point,
-          brushRadius,
-          erasePaint,
-        );
+        canvas.drawCircle(point, brushRadius, erasePaint);
       }
     }
 
