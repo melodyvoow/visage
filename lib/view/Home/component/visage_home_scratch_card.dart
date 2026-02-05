@@ -11,7 +11,7 @@ class VisageHomeScratchCard extends StatefulWidget {
 
 class _VisageHomeScratchCardState extends State<VisageHomeScratchCard> {
   final List<Offset> _revealedPoints = [];
-  static const double brushRadius = 80.0; // 브러시 크기
+  static const double brushRadius = 60.0; // 브러시 크기
 
   void _onHover(PointerHoverEvent event) {
     setState(() {
