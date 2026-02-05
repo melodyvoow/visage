@@ -23,22 +23,19 @@ class VisageHomeView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // 서브 텍스트
             const Text(
               'AI가 만드는 당신만의 컴카드',
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 18,
-              ),
+              style: TextStyle(color: Colors.white70, fontSize: 18),
             ),
             const SizedBox(height: 60),
-            
+
             // 스크래치 카드 영역
             const VisageHomeScratchCard(),
-            
+
             const SizedBox(height: 60),
-            
+
             // CTA 버튼
             ElevatedButton(
               onPressed: () {
@@ -57,10 +54,7 @@ class VisageHomeView extends StatelessWidget {
               ),
               child: const Text(
                 '나만의 컴카드 만들기',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
           ],
