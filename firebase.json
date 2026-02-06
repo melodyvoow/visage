@@ -1,0 +1,23 @@
+{
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "nyx-0001",
+          "configurations": {
+            "web": "1:721515881322:web:2b1897f7e3ba9b7bacbb13"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "site": "visageu",
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
