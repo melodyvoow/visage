@@ -11,26 +11,60 @@ class VisageHomeScratchCard extends StatefulWidget {
   State<VisageHomeScratchCard> createState() => _VisageHomeScratchCardState();
 }
 
-class _VisageHomeScratchCardState extends State<VisageHomeScratchCard> {
+class _VisageHomeScratchCardState extends State<VisageHomeScratchCard>
+    with SingleTickerProviderStateMixin {
   final List<Offset> _revealedPoints = [];
   static const double brushRadius = 60.0; // 브러시 크기
   ui.Image? _sketchImage;
+  late AnimationController _hintAnimationController;
+  late Animation<double> _hintAnimation;
+  Offset? _centerPoint;
 
   @override
   void initState() {
     super.initState();
     _loadSketchImage();
+    _setupHintAnimation();
   }
 
   Future<void> _loadSketchImage() async {
-    final ByteData data = await rootBundle.load('assets/image/example_sketch.png');
+    final ByteData data =
+        await rootBundle.load('assets/image/example_sketch.png');
     final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
     final frame = await codec.getNextFrame();
     if (mounted) {
       setState(() {
         _sketchImage = frame.image;
       });
+      // 이미지 로드 후 힌트 애니메이션 시작
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _hintAnimationController.forward();
+        }
+      });
     }
+  }
+
+  void _setupHintAnimation() {
+    _hintAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _hintAnimation = CurvedAnimation(
+      parent: _hintAnimationController,
+      curve: Curves.easeOutCubic,
+    );
+
+    _hintAnimationController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _hintAnimationController.dispose();
+    super.dispose();
   }
 
   void _onHover(PointerHoverEvent event) {
@@ -45,6 +79,9 @@ class _VisageHomeScratchCardState extends State<VisageHomeScratchCard> {
     final screenSize = MediaQuery.of(context).size;
     final cardWidth = screenSize.width * 0.85; // 화면의 85%
     final cardHeight = screenSize.height * 0.80; // 화면의 70%
+
+    // 중앙점 계산 (한 번만)
+    _centerPoint ??= Offset(cardWidth / 2, cardHeight / 2);
 
     return MouseRegion(
       onHover: _onHover,
@@ -79,6 +116,8 @@ class _VisageHomeScratchCardState extends State<VisageHomeScratchCard> {
                       revealedPoints: List.from(_revealedPoints),
                       brushRadius: brushRadius,
                       sketchImage: _sketchImage!,
+                      hintProgress: _hintAnimation.value,
+                      centerPoint: _centerPoint,
                     ),
                   ),
                 ),
@@ -106,11 +145,15 @@ class _SketchWithMaskPainter extends CustomPainter {
   final List<Offset> revealedPoints;
   final double brushRadius;
   final ui.Image sketchImage;
+  final double hintProgress;
+  final Offset? centerPoint;
 
   _SketchWithMaskPainter({
     required this.revealedPoints,
     required this.brushRadius,
     required this.sketchImage,
+    required this.hintProgress,
+    this.centerPoint,
   });
 
   @override
@@ -124,6 +167,61 @@ class _SketchWithMaskPainter extends CustomPainter {
       image: sketchImage,
       fit: BoxFit.cover,
     );
+
+    // 힌트 애니메이션: 중앙에 자연스러운 스크래치
+    if (hintProgress > 0 && centerPoint != null) {
+      final erasePaint = Paint()
+        ..blendMode = BlendMode.clear
+        ..style = PaintingStyle.fill;
+
+      final random = math.Random(42); // 고정 시드로 일관된 패턴
+      final hintPointCount = (15 * hintProgress).toInt(); // 최대 15개 포인트
+
+      // 중앙에서 약간씩 움직이는 자연스러운 경로
+      for (int i = 0; i < hintPointCount; i++) {
+        final t = i / 15;
+        final angle = t * math.pi * 0.5 + random.nextDouble() * 0.3; // 약간 랜덤
+        final distance = brushRadius * t * 1.5;
+        
+        final point = Offset(
+          centerPoint!.dx + math.cos(angle) * distance,
+          centerPoint!.dy + math.sin(angle) * distance,
+        );
+
+        // 메인 원
+        canvas.drawCircle(point, brushRadius * 0.4, erasePaint);
+
+        // 타원형 스플래터
+        final splatterCount = 8;
+        for (int j = 0; j < splatterCount; j++) {
+          final splatterAngle = (j / splatterCount) * 2 * math.pi + random.nextDouble() * 1.2;
+          final splatterDistance = brushRadius * (0.5 + random.nextDouble() * 1.0);
+          
+          final splatterPoint = Offset(
+            point.dx + math.cos(splatterAngle) * splatterDistance,
+            point.dy + math.sin(splatterAngle) * splatterDistance,
+          );
+
+          final splatterWidth = brushRadius * (0.3 + random.nextDouble() * 0.6);
+          final splatterHeight = splatterWidth * (0.2 + random.nextDouble() * 0.3);
+
+          canvas.save();
+          canvas.translate(splatterPoint.dx, splatterPoint.dy);
+          canvas.rotate(splatterAngle + random.nextDouble() * 0.5);
+          
+          canvas.drawOval(
+            Rect.fromCenter(
+              center: Offset.zero,
+              width: splatterWidth,
+              height: splatterHeight,
+            ),
+            erasePaint,
+          );
+          
+          canvas.restore();
+        }
+      }
+    }
 
     // 마우스가 지나간 영역만 투명하게 제거
     if (revealedPoints.isNotEmpty) {
