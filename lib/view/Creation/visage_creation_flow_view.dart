@@ -1,7 +1,15 @@
 import 'dart:typed_data';
 import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:nyx_kernel/nyx_kernel.dart';
 import 'package:nyx_kernel/Firecat/viewmodel/NyxUpload/nyx_upload_ux_card.dart';
+import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/ProjectSlider/project_slider_firecat_crud_controller.dart';
+import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/ProjectSlider/project_slider_ux_card.dart';
+import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/ProjectSlider/SliderLayer/slider_layer_firecat_crud_controller.dart';
+import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/ProjectSlider/SliderLayer/slider_layer_ux_card.dart';
+import 'package:nyx_kernel/Firecat/viewmodel/NyxMember/nyx_member_firecat_crud_controller.dart';
+import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/nyx_project_ux_card.dart';
 import 'package:visage/service/gemini_service.dart';
 import 'package:visage/service/imagen_service.dart';
 import 'package:visage/service/nanobanana_service.dart';
@@ -42,8 +50,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     CreationStep.imageGeneration ||
     CreationStep.imageSelection => 0,
     CreationStep.imageUpload => 1,
-    CreationStep.layoutRecommend ||
-    CreationStep.layoutGenerating => 2,
+    CreationStep.layoutRecommend || CreationStep.layoutGenerating => 2,
     CreationStep.processing || CreationStep.result => 3,
   };
 
@@ -64,7 +71,9 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     debugPrint('[Flow] 텍스트: "${data.text}"');
     debugPrint('[Flow] 첨부 파일: ${data.files.length}개');
     for (final f in data.files) {
-      debugPrint('[Flow]   - ${f.name} (${f.type.name}, ${f.bytes.length} bytes)');
+      debugPrint(
+        '[Flow]   - ${f.name} (${f.type.name}, ${f.bytes.length} bytes)',
+      );
     }
     debugPrint('[Flow] 이미지 포함 여부: ${data.hasImage}');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -239,7 +248,9 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       final images = results[0] as List<Uint8List>;
       final bg = results[1] as Uint8List?;
 
-      debugPrint('[Flow] Imagen 결과: 추구미 이미지 ${images.length}개, 배경 ${bg != null ? "성공" : "실패"}');
+      debugPrint(
+        '[Flow] Imagen 결과: 추구미 이미지 ${images.length}개, 배경 ${bg != null ? "성공" : "실패"}',
+      );
 
       setState(() {
         _generatedImages = images;
@@ -283,9 +294,13 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     _compositeImages = images;
     _compositeUploadResults = uploadResults;
 
-    debugPrint('[Flow] 합성 이미지 ${images.length}장, 업로드 결과 ${uploadResults.length}건');
+    debugPrint(
+      '[Flow] 합성 이미지 ${images.length}장, 업로드 결과 ${uploadResults.length}건',
+    );
     for (final result in uploadResults) {
-      debugPrint('[Flow]   - doc: ${result.documentRef?.id}, url: ${result.uploadData?.ee_file_url}');
+      debugPrint(
+        '[Flow]   - doc: ${result.documentRef?.id}, url: ${result.uploadData?.ee_file_url}',
+      );
     }
 
     _goToStep(CreationStep.layoutGenerating);
@@ -331,7 +346,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
 
   void _onLayoutSelected(int index) {
     _goToStep(CreationStep.processing);
-    _simulateProcessing();
+    _handleDeskGeneration(index);
   }
 
   void _onRegenerateLayouts() {
@@ -339,11 +354,283 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     _generateLayoutImages();
   }
 
-  Future<void> _simulateProcessing() async {
-    await Future.delayed(const Duration(seconds: 3));
-    if (mounted) {
-      _goToStep(CreationStep.result);
+  // =========================================================================
+  // 🎨 Desk 워크플로우 - Shadow Agent를 통한 컴카드 생성
+  // =========================================================================
+
+  /// 레이아웃 선택 후 Desk 워크플로우로 진입
+  ///
+  /// 플로우:
+  /// 1. 소스 프로젝트(템플릿) 조회
+  /// 2. 초기 데이터 로드 (슬라이더 + 레이어)
+  /// 3. 새 프로젝트 ID 생성
+  /// 4. Shadow Agent 백엔드 호출 (비동기)
+  /// 5. Shadow Preview View로 네비게이션
+  Future<void> _handleDeskGeneration(int layoutIndex) async {
+    try {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('[Desk] Desk 워크플로우 진입 (레이아웃 #$layoutIndex)');
+
+      // Step 1: 소스 프로젝트(템플릿) 조회
+      // TODO: 실제 템플릿 프로젝트 ID를 설정하세요
+      const sourceProjectId = 'TEMPLATE_PROJECT_ID';
+      const sourceDatabaseId = 'default';
+
+      final sourceProject =
+          await NyxProjectDatabaseFirecatCrudController.getProjectDatabase(
+            sourceProjectId,
+            database: sourceDatabaseId,
+          );
+
+      if (sourceProject == null) {
+        debugPrint('[Desk] ❌ 소스 프로젝트를 찾을 수 없습니다: $sourceProjectId');
+        if (mounted) {
+          _showWarningDialog('템플릿 프로젝트를 찾을 수 없습니다.');
+          _goToStep(CreationStep.layoutRecommend);
+        }
+        return;
+      }
+      debugPrint('[Desk] ✓ 소스 프로젝트 로드 완료: ${sourceProject.documentRef?.id}');
+
+      // Step 2: 초기 데이터 로드 (슬라이더 + 레이어)
+      final (initialSlider, initialLayers) = await _loadShadowInitialData(
+        sourceProject,
+      );
+      if (initialSlider == null) {
+        debugPrint('[Desk] ❌ 초기 슬라이더 데이터를 로드할 수 없습니다.');
+        if (mounted) {
+          _showWarningDialog('초기 슬라이더 데이터를 로드할 수 없습니다.');
+          _goToStep(CreationStep.layoutRecommend);
+        }
+        return;
+      }
+
+      // Step 3: 새 프로젝트 ID 생성
+      final projectId = FirebaseFirestore.instanceFor(
+        app: FirebaseFirestore.instance.app,
+        databaseId: NyxConstants.databaseName,
+      ).collection(NyxConstants.collectionNyxProject).doc().id;
+      debugPrint('[Desk] 🆔 생성된 프로젝트 ID: $projectId');
+
+      // Step 4: Shadow Agent 백엔드 호출 (비동기)
+      final userPrompt = _analyzedPrompt ?? _promptData?.text ?? '';
+      _generateShadowAsync(
+        sourceProject.documentRef!.id,
+        userPrompt,
+        projectId,
+      );
+
+      // Step 5: Shadow Preview View로 네비게이션
+      if (mounted) {
+        _navigateToShadowView(initialSlider, initialLayers, projectId);
+      }
+
+      debugPrint('[Desk] ✓ Desk 워크플로우 진입 완료');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    } catch (e) {
+      debugPrint('[Desk] ❌ Desk 워크플로우 오류: $e');
+      if (mounted) {
+        _showWarningDialog('컴카드 생성 중 오류가 발생했습니다: $e');
+        _goToStep(CreationStep.layoutRecommend);
+      }
     }
+  }
+
+  /// Shadow 초기 데이터 로드 (슬라이더 + 레이어)
+  ///
+  /// 선택된 프로젝트의 첫 번째 슬라이더와 그 레이어들을 로드
+  /// - null을 반환하면 호출자에서 에러 처리
+  Future<(ProjectSliderUXThumbCardStore?, List<SliderLayerUXThumbCardStore>)>
+  _loadShadowInitialData(NyxProjectUXThumbCardStore sourceProject) async {
+    try {
+      debugPrint('[Desk] 📦 Shadow 초기 데이터 로드 시작');
+
+      // Step 1: 첫 번째 슬라이더 로드
+      final initialSlider =
+          await ProjectSliderFirecatCRUDController.getFirstSlider(
+            sourceProject.documentRef!,
+          );
+      if (initialSlider == null) {
+        debugPrint('[Desk] ❌ 슬라이더를 찾을 수 없습니다.');
+        return (null, <SliderLayerUXThumbCardStore>[]);
+      }
+      debugPrint('[Desk] ✓ 슬라이더 로드 완료: ${initialSlider.itemRef?.id}');
+
+      // Step 2: 슬라이더의 레이어들 로드
+      final initialLayers =
+          await SliderLayerFirecatCRUDController.getSliderLayerList(
+            initialSlider.itemRef!,
+          );
+      debugPrint('[Desk] ✓ 레이어 로드 완료: ${initialLayers.length}개');
+
+      return (initialSlider, initialLayers);
+    } catch (e) {
+      debugPrint('[Desk] ❌ Shadow 초기 데이터 로드 실패: $e');
+      return (null, <SliderLayerUXThumbCardStore>[]);
+    }
+  }
+
+  /// Shadow 백엔드 생성 (비동기, 실패해도 무시)
+  ///
+  /// Cloud Function을 호출하여 Shadow 콘텐츠 생성
+  /// - 실패해도 View는 계속 표시됨 (Firestore 리스너가 자동으로 업데이트)
+  void _generateShadowAsync(
+    String sourceProjectId,
+    String userPrompt,
+    String projectId,
+  ) {
+    debugPrint('[Desk] 🚀 Agent Shadow 백엔드 호출 시작');
+    NyxAI.generateAgentShadow(
+          sourceProjectId: sourceProjectId,
+          userPrompt: userPrompt,
+          sourceDatabaseId: 'default',
+          targetDatabaseId: NyxConstants.databaseName,
+          targetProjectId: projectId,
+          uploadId: _compositeUploadResults
+              .map((e) => e.documentRef!.id)
+              .toList(),
+        )
+        .then((result) {
+          debugPrint('[Desk] ✓ Agent Shadow 완료: ${result.message}');
+        })
+        .catchError((e) {
+          debugPrint('[Desk] ❌ Agent Shadow 백엔드 호출 오류: $e');
+        });
+  }
+
+  /// Shadow View로 네비게이션
+  void _navigateToShadowView(
+    ProjectSliderUXThumbCardStore initialSlider,
+    List<SliderLayerUXThumbCardStore> initialLayers,
+    String projectId,
+  ) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NyxCanvasAiAgentShadowView(
+          databaseId: NyxConstants.databaseName,
+          projectId: projectId,
+          initialSlider: initialSlider,
+          initialLayers: initialLayers,
+          onCanvasProject: _navigateToCanvasView,
+        ),
+        fullscreenDialog: true,
+      ),
+    );
+  }
+
+  /// Shadow 완료 후 Canvas View로 이동
+  Future<void> _navigateToCanvasView(
+    NyxProjectUXThumbCardStore nyxProject,
+  ) async {
+    try {
+      // 현재 로그인된 사용자 정보 조회
+      final uid = NyxMemberFirecatAuthController.getCurrentUserUid();
+      if (uid == null) {
+        debugPrint('[Desk] ❌ 로그인 정보를 찾을 수 없습니다.');
+        return;
+      }
+
+      final member = await NyxMemberFirecatCrudController.getMember(uid);
+      if (member == null || !mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NyxCanvasView(
+            projectUXThumbCardStore: nyxProject,
+            playerUXThumbCardStore: member,
+            databaseId: NyxConstants.databaseName,
+            onStart: () {},
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint('[Desk] ❌ Canvas 이동 오류: $e');
+    }
+  }
+
+  /// 경고 다이얼로그 표시
+  void _showWarningDialog(String message) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'warning',
+      barrierColor: Colors.black.withOpacity(0.5),
+      transitionDuration: const Duration(milliseconds: 300),
+      transitionBuilder: (context, animation, _, child) {
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.9, end: 1.0).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            ),
+            child: child,
+          ),
+        );
+      },
+      pageBuilder: (context, _, __) => Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 360),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: GlassContainer(
+              borderRadius: 24,
+              blur: 40,
+              opacity: 0.18,
+              enableShadow: true,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.amber.withOpacity(0.8),
+                    size: 36,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.85),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      decoration: TextDecoration.none,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        color: Colors.white.withOpacity(0.1),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.15),
+                        ),
+                      ),
+                      child: const Text(
+                        '확인',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _onCreateNew() {
