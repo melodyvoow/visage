@@ -403,7 +403,9 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     // 선택된 레이아웃의 프롬프트 가져오기
     String layoutPrompt = '';
     if (_selectedStyle != null && _recommendedLayoutIndices.isNotEmpty) {
-      final descriptions = NanoBananaService.getLayoutDescriptions(_selectedStyle!);
+      final descriptions = NanoBananaService.getLayoutDescriptions(
+        _selectedStyle!,
+      );
       final actualIndex = layoutIndex < _recommendedLayoutIndices.length
           ? _recommendedLayoutIndices[layoutIndex]
           : 0;
@@ -831,7 +833,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
               : SizedBox.expand(
                   key: const ValueKey('static_bg'),
                   child: Image.asset(
-                    'assets/image/visage_bg.png',
+                    'assets/image/visage_bg_ee.jpeg',
                     fit: BoxFit.cover,
                   ),
                 ),

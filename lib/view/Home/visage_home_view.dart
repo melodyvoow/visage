@@ -159,129 +159,50 @@ class _VisageHomeViewState extends State<VisageHomeView> {
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 200),
         opacity: _isLoginInProgress ? 0.6 : 1.0,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.white.withOpacity(0.15),
-                blurRadius: 20,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Google 로고 (SVG 대신 직접 그리기)
-              _buildGoogleLogo(),
-              const SizedBox(width: 16),
-              Text(
-                _isLoginInProgress ? '로그인 중...' : 'Google로 시작하기',
-                style: const TextStyle(
-                  color: Color(0xFF1F1F1F),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.2,
+        child: _isLoginInProgress
+            ? Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.15),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ),
-              if (_isLoginInProgress) ...[
-                const SizedBox(width: 12),
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Color(0xFF1F1F1F),
-                  ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '로그인 중...',
+                      style: TextStyle(
+                        color: Color(0xFF1F1F1F),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFF1F1F1F),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ],
-          ),
-        ),
+              )
+            : Image.asset(
+                'assets/image/google_login.png',
+                height: 48,
+              ),
       ),
     );
   }
-
-  /// Google 로고 위젯
-  Widget _buildGoogleLogo() {
-    return SizedBox(
-      width: 24,
-      height: 24,
-      child: CustomPaint(painter: _GoogleLogoPainter()),
-    );
-  }
-}
-
-/// Google 로고를 그리는 CustomPainter
-class _GoogleLogoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final double w = size.width;
-    final double h = size.height;
-    final double cx = w / 2;
-    final double cy = h / 2;
-    final double r = w * 0.45;
-
-    // Google "G" 로고 간소화 버전
-    // 파란색 (오른쪽 상단)
-    final bluePaint = Paint()
-      ..color = const Color(0xFF4285F4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.18
-      ..strokeCap = StrokeCap.butt;
-
-    // 빨간색 (오른쪽 하단 → 왼쪽 상단)
-    final redPaint = Paint()
-      ..color = const Color(0xFFEA4335)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.18
-      ..strokeCap = StrokeCap.butt;
-
-    // 노란색
-    final yellowPaint = Paint()
-      ..color = const Color(0xFFFBBC05)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.18
-      ..strokeCap = StrokeCap.butt;
-
-    // 초록색
-    final greenPaint = Paint()
-      ..color = const Color(0xFF34A853)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = w * 0.18
-      ..strokeCap = StrokeCap.butt;
-
-    final rect = Rect.fromCircle(center: Offset(cx, cy), radius: r);
-
-    // 그리기 순서: 빨강(상단) → 노랑(좌하단) → 초록(하단) → 파랑(우측)
-    // 각도: 0 = 3시, 90 = 6시 (시계방향), -90 = 12시
-
-    // 빨간색: 12시 ~ 9시 (왼쪽 상단)
-    canvas.drawArc(rect, -2.8, -0.75, false, redPaint);
-
-    // 노란색: 9시 ~ 6시 (왼쪽 하단)
-    canvas.drawArc(rect, 2.6, 0.75, false, yellowPaint);
-
-    // 초록색: 6시 ~ 3시 (오른쪽 하단)
-    canvas.drawArc(rect, 0.55, 0.75, false, greenPaint);
-
-    // 파란색: 3시 ~ 12시 (오른쪽 상단) + 가로선
-    canvas.drawArc(rect, -0.55, 0.75, false, bluePaint);
-
-    // 파란색 가로선 (G의 가운데 획)
-    final barPaint = Paint()
-      ..color = const Color(0xFF4285F4)
-      ..style = PaintingStyle.fill;
-
-    canvas.drawRect(
-      Rect.fromLTWH(cx - w * 0.02, cy - h * 0.08, w * 0.5, h * 0.16),
-      barPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
