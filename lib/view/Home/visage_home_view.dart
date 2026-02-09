@@ -100,6 +100,7 @@ class _VisageHomeViewState extends State<VisageHomeView> {
         padding: const EdgeInsets.only(top: 12, bottom: 12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // 타이틀
             Text(
@@ -115,7 +116,7 @@ class _VisageHomeViewState extends State<VisageHomeView> {
             const SizedBox(height: 16),
 
             // 스크래치 카드 영역 (화면의 85% 크기)
-            const VisageHomeScratchCard(),
+            const Center(child: VisageHomeScratchCard()),
 
             const SizedBox(height: 18),
 

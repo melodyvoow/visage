@@ -6,6 +6,7 @@ import 'package:visage/firebase_options.dart';
 import 'config/visage_constants.dart';
 import 'config/visage_theme.dart';
 import 'view/Home/visage_home_view.dart';
+import 'view/Mobile/visage_mobile_guide_view.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 /*
@@ -52,7 +53,15 @@ class MainApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const VisageHomeView(),
+      home: LayoutBuilder(
+        builder: (context, constraints) {
+          // 화면 너비 768 이하를 모바일로 판단
+          if (constraints.maxWidth <= 768) {
+            return const VisageMobileGuideView();
+          }
+          return const VisageHomeView();
+        },
+      ),
     );
   }
 }
