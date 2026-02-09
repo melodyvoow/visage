@@ -205,25 +205,25 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
 
   /// 이미지로 바로 진행 (배경 생성만 병렬 실행)
   void _proceedDirectly() {
-    _generateBackgroundWithAnalysis();
+    _generateBackgroundOnly();
     _goToStep(CreationStep.imageUpload);
   }
 
-  /// Gemini 분석 → Imagen 이미지 생성 + 배경 생성
+  /// 프롬프트 준비 → Imagen 이미지 생성 + 배경 생성
   Future<void> _analyzeAndGenerate() async {
-    // 1. Gemini로 프롬프트 분석
-    debugPrint('[Flow] Gemini 분석 시작...');
-    final analyzed = await GeminiService.analyzePromptData(_promptData!);
+    // PDF 있으면 Gemini로 키워드 추출, 없으면 텍스트 그대로 사용
+    debugPrint('[Flow] 프롬프트 준비 시작 (PDF: ${_promptData!.hasPdf})...');
+    final prompt = await GeminiService.extractPdfKeywords(_promptData!);
 
     if (!mounted) return;
-    _analyzedPrompt = analyzed;
-    debugPrint('[Flow] Gemini 분석 완료 → Imagen 호출 시작');
-    debugPrint('[Flow] 분석된 프롬프트: "$analyzed"');
+    _analyzedPrompt = prompt;
+    debugPrint('[Flow] 최종 프롬프트 → Imagen 호출 시작');
+    debugPrint('[Flow] 프롬프트: "$prompt"');
 
     // 2. 병렬로 추구미 이미지 + 배경 생성
     final results = await Future.wait([
-      ImagenService.generateAestheticImages(analyzed),
-      ImagenService.generateBackground(analyzed),
+      ImagenService.generateAestheticImages(prompt),
+      ImagenService.generateBackground(prompt),
     ]);
 
     if (mounted) {
@@ -240,15 +240,15 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     }
   }
 
-  /// 배경만 Gemini 분석 후 생성 (바로 진행 시)
-  Future<void> _generateBackgroundWithAnalysis() async {
+  /// 배경만 생성 (바로 진행 시)
+  Future<void> _generateBackgroundOnly() async {
     debugPrint('[Flow] 바로 진행 모드 → 배경만 생성');
-    final analyzed = await GeminiService.analyzePromptData(_promptData!);
+    final prompt = await GeminiService.extractPdfKeywords(_promptData!);
     if (!mounted) return;
-    _analyzedPrompt = analyzed;
-    debugPrint('[Flow] 배경용 분석 프롬프트: "$analyzed"');
+    _analyzedPrompt = prompt;
+    debugPrint('[Flow] 배경용 프롬프트: "$prompt"');
 
-    final bgImage = await ImagenService.generateBackground(analyzed);
+    final bgImage = await ImagenService.generateBackground(prompt);
     if (mounted && bgImage != null) {
       debugPrint('[Flow] 배경 이미지 생성 완료');
       setState(() {

@@ -30,5 +30,6 @@ class PromptData {
   const PromptData({this.text = '', this.files = const []});
 
   bool get hasImage => files.any((f) => f.type == AttachedFileType.image);
+  bool get hasPdf => files.any((f) => f.type == AttachedFileType.pdf);
   bool get isEmpty => text.trim().isEmpty && files.isEmpty;
 }
