@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:visage/view/Creation/visage_creation_types.dart';
@@ -45,8 +46,28 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
   }
 
   Future<void> _pickPdf() async {
-    // TODO: PDF 파일 피커 연동 (file_picker 패키지 필요)
-    // 현재는 placeholder
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+      allowMultiple: true,
+      withData: true,
+    );
+
+    if (result != null) {
+      for (final file in result.files) {
+        if (file.bytes != null) {
+          setState(() {
+            _attachedFiles.add(
+              AttachedFile(
+                name: file.name,
+                bytes: file.bytes!,
+                type: AttachedFileType.pdf,
+              ),
+            );
+          });
+        }
+      }
+    }
   }
 
   void _removeFile(int index) {
