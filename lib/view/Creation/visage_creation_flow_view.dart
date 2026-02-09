@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:nyx_kernel/nyx_kernel.dart';
 import 'package:nyx_kernel/Firecat/viewmodel/NyxUpload/nyx_upload_ux_card.dart';
+import 'package:nyx_kernel/Firecat/viewmodel/NyxVector/nyx_vector_ux_card.dart';
 import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/ProjectSlider/project_slider_firecat_crud_controller.dart';
 import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/ProjectSlider/project_slider_ux_card.dart';
 import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/ProjectSlider/SliderLayer/slider_layer_firecat_crud_controller.dart';
@@ -13,12 +14,14 @@ import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/nyx_project_ux_card.dart
 import 'package:visage/service/gemini_service.dart';
 import 'package:visage/service/imagen_service.dart';
 import 'package:visage/service/nanobanana_service.dart';
+import 'package:visage/service/visage_svg_service.dart';
 import 'package:visage/view/Creation/visage_creation_types.dart';
 import 'package:visage/widget/glass_container.dart';
 import 'step/visage_prompt_input_step.dart';
 import 'step/visage_image_select_step.dart';
 import 'step/visage_image_upload_step.dart';
 import 'step/visage_layout_recommend_step.dart';
+import 'step/visage_style_selection_step.dart';
 import 'step/visage_result_step.dart';
 
 class VisageCreationFlowView extends StatefulWidget {
@@ -39,7 +42,11 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
   int? _selectedAestheticIndex; // 선택된 추구미 이미지 인덱스
   List<Uint8List> _compositeImages = []; // 합성용 상품 이미지
   List<NyxUploadUXThumbCardStore> _compositeUploadResults = []; // 업로드 결과
+  DesignStyle? _selectedStyle; // 선택된 디자인 스타일
+  List<int> _recommendedLayoutIndices = []; // Gemini가 추천한 레이아웃 인덱스
   List<Uint8List> _layoutImages = []; // 레이아웃 추천 이미지
+  int? _selectedLayoutIndex; // 선택된 레이아웃 인덱스
+  List<NyxVectorUXThumbCardStore> _svgResults = []; // SVG 업로드 결과
 
   // Dynamic background
   Uint8List? _generatedBackground;
@@ -50,7 +57,9 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     CreationStep.imageGeneration ||
     CreationStep.imageSelection => 0,
     CreationStep.imageUpload => 1,
-    CreationStep.layoutRecommend || CreationStep.layoutGenerating => 2,
+    CreationStep.styleSelection ||
+    CreationStep.layoutGenerating ||
+    CreationStep.layoutRecommend => 2,
     CreationStep.processing || CreationStep.result => 3,
   };
 
@@ -303,15 +312,39 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       );
     }
 
-    _goToStep(CreationStep.layoutGenerating);
-    _generateLayoutImages();
+    // 합성 이미지 업로드 후 → 스타일 선택 화면으로
+    _goToStep(CreationStep.styleSelection);
   }
 
-  /// Nano Banana로 레이아웃 추천 이미지 생성
-  Future<void> _generateLayoutImages() async {
-    debugPrint('[Flow] 레이아웃 이미지 생성 시작 (NanoBanana)');
+  /// 스타일 선택 → Gemini 추천 → NanoBanana 이미지 생성
+  void _onStyleSelected(DesignStyle style) {
+    _selectedStyle = style;
+    _goToStep(CreationStep.layoutGenerating);
+    _recommendAndGenerateLayouts(style);
+  }
 
-    // 추구미 이미지 결정: 선택된 생성 이미지 또는 첨부 이미지
+  /// Gemini로 추구미에 맞는 레이아웃 3개를 추천받고, NanoBanana로 이미지를 생성합니다.
+  Future<void> _recommendAndGenerateLayouts(DesignStyle style) async {
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('[Flow] 레이아웃 추천 + 생성 시작');
+    debugPrint('[Flow] 스타일: ${style.label}');
+
+    final userPrompt = _analyzedPrompt ?? _promptData?.text ?? '';
+
+    // 1. Gemini에게 추천 요청
+    final layoutDescriptions = NanoBananaService.getLayoutDescriptions(style);
+    final indices = await GeminiService.recommendLayouts(
+      styleName: style.label,
+      layoutDescriptions: layoutDescriptions,
+      aestheticKeywords: userPrompt,
+    );
+
+    if (!mounted) return;
+
+    setState(() => _recommendedLayoutIndices = indices);
+    debugPrint('[Flow] Gemini 추천 레이아웃: $indices');
+
+    // 2. 추구미 이미지 결정
     Uint8List? aestheticImage;
     if (_selectedAestheticIndex != null &&
         _selectedAestheticIndex! < _generatedImages.length) {
@@ -329,10 +362,13 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       return;
     }
 
+    // 3. NanoBanana로 추천된 레이아웃 이미지 생성
     final layouts = await NanoBananaService.generateLayoutImages(
       aestheticImage: aestheticImage,
       productImages: _compositeImages,
-      userPrompt: _analyzedPrompt ?? _promptData?.text,
+      style: style,
+      layoutIndices: indices,
+      userPrompt: userPrompt,
     );
 
     if (mounted) {
@@ -345,13 +381,81 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
   }
 
   void _onLayoutSelected(int index) {
+    _selectedLayoutIndex = index;
     _goToStep(CreationStep.processing);
-    _handleDeskGeneration(index);
+    _generateSvgAndProceed(index);
+  }
+
+  /// SVG 생성 + NyxVector 업로드 → Desk 워크플로우 진입
+  Future<void> _generateSvgAndProceed(int layoutIndex) async {
+    final uid = NyxMemberFirecatAuthController.getCurrentUserUid();
+    if (uid == null) {
+      debugPrint('[Flow] 로그인 필요');
+      if (mounted) {
+        _showWarningDialog('로그인이 필요합니다.');
+        _goToStep(CreationStep.layoutRecommend);
+      }
+      return;
+    }
+
+    final userPrompt = _analyzedPrompt ?? _promptData?.text ?? '';
+
+    // 선택된 레이아웃의 프롬프트 가져오기
+    String layoutPrompt = '';
+    if (_selectedStyle != null && _recommendedLayoutIndices.isNotEmpty) {
+      final descriptions = NanoBananaService.getLayoutDescriptions(_selectedStyle!);
+      final actualIndex = layoutIndex < _recommendedLayoutIndices.length
+          ? _recommendedLayoutIndices[layoutIndex]
+          : 0;
+      if (actualIndex < descriptions.length) {
+        layoutPrompt = descriptions[actualIndex];
+      }
+    }
+
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('[Flow] SVG 생성 + 업로드 시작');
+    debugPrint('[Flow] 스타일: ${_selectedStyle?.label}');
+    debugPrint('[Flow] 레이아웃 인덱스: $layoutIndex');
+    debugPrint('[Flow] 프롬프트: "$userPrompt"');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+    try {
+      // SVG 1장 생성 + 업로드
+      final result = await VisageSvgService.generateAndUpload(
+        moodKeywords: userPrompt,
+        designStyle: _selectedStyle ?? DesignStyle.softRound,
+        userPrompt: _promptData?.text ?? '',
+        layoutPrompt: layoutPrompt,
+        userId: uid,
+        onState: (state) {
+          debugPrint('[Flow] SVG 진행: $state');
+        },
+      );
+
+      if (!mounted) return;
+
+      if (result != null) {
+        setState(() => _svgResults = [result]);
+      }
+
+      debugPrint('[Flow] SVG 업로드 ${result != null ? "완료" : "실패"}');
+
+      // SVG 업로드 완료 후 Desk 워크플로우 진입
+      _handleDeskGeneration(layoutIndex);
+    } catch (e) {
+      debugPrint('[Flow] SVG 생성 오류: $e');
+      if (mounted) {
+        _showWarningDialog('SVG 생성 중 오류가 발생했습니다: $e');
+        _goToStep(CreationStep.layoutRecommend);
+      }
+    }
   }
 
   void _onRegenerateLayouts() {
-    _goToStep(CreationStep.layoutGenerating);
-    _generateLayoutImages();
+    if (_selectedStyle != null) {
+      _goToStep(CreationStep.layoutGenerating);
+      _recommendAndGenerateLayouts(_selectedStyle!);
+    }
   }
 
   // =========================================================================
@@ -641,7 +745,11 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       _selectedAestheticIndex = null;
       _compositeImages = [];
       _compositeUploadResults = [];
+      _selectedStyle = null;
+      _recommendedLayoutIndices = [];
       _layoutImages = [];
+      _selectedLayoutIndex = null;
+      _svgResults = [];
       _generatedBackground = null;
     });
   }
@@ -659,8 +767,10 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
         } else {
           _goToStep(CreationStep.imageSelection);
         }
-      case CreationStep.layoutRecommend:
+      case CreationStep.styleSelection:
         _goToStep(CreationStep.imageUpload);
+      case CreationStep.layoutRecommend:
+        _goToStep(CreationStep.styleSelection);
       case CreationStep.layoutGenerating:
       case CreationStep.processing:
       case CreationStep.result:
@@ -672,6 +782,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     CreationStep.promptInput ||
     CreationStep.imageSelection ||
     CreationStep.imageUpload ||
+    CreationStep.styleSelection ||
     CreationStep.layoutRecommend => true,
     _ => false,
   };
@@ -978,6 +1089,11 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
         child = VisageImageUploadStep(
           key: const ValueKey('imageUpload'),
           onSubmit: _onCompositeImagesUploaded,
+        );
+      case CreationStep.styleSelection:
+        child = VisageStyleSelectionStep(
+          key: const ValueKey('styleSelection'),
+          onStyleSelected: _onStyleSelected,
         );
       case CreationStep.layoutRecommend:
         child = VisageLayoutRecommendStep(
