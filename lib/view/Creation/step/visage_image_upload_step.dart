@@ -1,6 +1,9 @@
 import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:nyx_kernel/Firecat/viewmodel/NyxMember/nyx_member_firecat_auth_controller.dart';
+import 'package:nyx_kernel/Firecat/viewmodel/NyxUpload/nyx_upload_firecat_crud_controller.dart';
 import 'package:visage/widget/glass_container.dart';
 
 class VisageImageUploadStep extends StatefulWidget {
@@ -15,6 +18,10 @@ class VisageImageUploadStep extends StatefulWidget {
 class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
   final List<_UploadedImage> _images = [];
   final ImagePicker _picker = ImagePicker();
+
+  bool _isUploading = false;
+  String _uploadProgress = '';
+  int _uploadedCount = 0;
 
   Future<void> _pickImages() async {
     final List<XFile> files = await _picker.pickMultiImage();
@@ -32,6 +39,83 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
     setState(() {
       _images.removeAt(index);
     });
+  }
+
+  /// 이미지들을 NyxUpload로 Firestore에 업로드한 뒤 onSubmit 호출
+  Future<void> _uploadAndSubmit() async {
+    if (_images.isEmpty) return;
+
+    final uid = NyxMemberFirecatAuthController.getCurrentUserUid();
+    if (uid == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('로그인이 필요합니다.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isUploading = true;
+      _uploadedCount = 0;
+      _uploadProgress = '업로드 준비 중...';
+    });
+
+    try {
+      for (var i = 0; i < _images.length; i++) {
+        final image = _images[i];
+
+        final platformFile = PlatformFile(
+          name: image.name,
+          size: image.bytes.length,
+          bytes: image.bytes,
+        );
+
+        final result = await NyxUploadFirecatCrudController.uploadFile(
+          uid,
+          platformFile,
+          (progress) {
+            if (mounted) {
+              setState(() {
+                _uploadProgress = '(${i + 1}/${_images.length}) $progress';
+              });
+            }
+          },
+        );
+
+        if (result != null) {
+          debugPrint('[VisageUpload] 업로드 성공: ${image.name}');
+          setState(() => _uploadedCount = i + 1);
+        } else {
+          debugPrint('[VisageUpload] 업로드 실패: ${image.name}');
+        }
+      }
+
+      debugPrint('[VisageUpload] 전체 업로드 완료: $_uploadedCount/${_images.length}');
+    } catch (e) {
+      debugPrint('[VisageUpload] 업로드 오류: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('업로드 중 오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+          _uploadProgress = '';
+        });
+      }
+    }
+
+    // 업로드 완료 후 다음 스텝으로 진행
+    widget.onSubmit(_images.map((e) => e.bytes).toList());
   }
 
   @override
@@ -72,38 +156,88 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
               ),
               const SizedBox(height: 24),
 
-              // Submit button
-              GestureDetector(
-                onTap: () =>
-                    widget.onSubmit(_images.map((e) => e.bytes).toList()),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 48,
-                    vertical: 16,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF7B2FBE).withOpacity(0.4),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
+              // Upload progress
+              if (_isUploading) ...[
+                GlassContainer(
+                  width: double.infinity,
+                  borderRadius: 20,
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            const Color(0xFFE040FB),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _uploadProgress,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '$_uploadedCount / ${_images.length} 완료',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.4),
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
-                  child: const Text(
-                    '합성하기',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                ),
+              ],
+
+              // Submit button
+              if (!_isUploading)
+                GestureDetector(
+                  onTap: _images.isNotEmpty ? _uploadAndSubmit : null,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 48,
+                      vertical: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: _images.isNotEmpty
+                          ? const LinearGradient(
+                              colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
+                            )
+                          : null,
+                      color: _images.isNotEmpty
+                          ? null
+                          : Colors.white.withOpacity(0.05),
+                      boxShadow: _images.isNotEmpty
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFF7B2FBE).withOpacity(0.4),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Text(
+                      '합성하기',
+                      style: TextStyle(
+                        color: _images.isNotEmpty
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.3),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
-              ),
               const SizedBox(height: 16),
             ],
           ),
