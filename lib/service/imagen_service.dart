@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class ImagenService {
-  static const String _apiKey = 'AIzaSyC5p5fxEqDBYWtA1Td2waIObaekDeixzik';
+  static const String _apiKey = 'AIzaSyAVGK1hJQtUGCwTfjV7Zu7SuF0TBpuISKg';
   static const String _model = 'imagen-4.0-generate-001';
   static const String _baseUrl =
       'https://generativelanguage.googleapis.com/v1beta/models';
