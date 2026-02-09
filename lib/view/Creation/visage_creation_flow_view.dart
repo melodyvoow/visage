@@ -372,8 +372,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       debugPrint('[Desk] Desk 워크플로우 진입 (레이아웃 #$layoutIndex)');
 
       // Step 1: 소스 프로젝트(템플릿) 조회
-      // TODO: 실제 템플릿 프로젝트 ID를 설정하세요
-      const sourceProjectId = 'TEMPLATE_PROJECT_ID';
+      const sourceProjectId = 'aBNcKEZlYr0DHlllbHlC';
       const sourceDatabaseId = 'default';
 
       final sourceProject =
