@@ -133,7 +133,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '이미지가 첨부되었어요',
+                    'Image Attached',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.9),
                       fontSize: 20,
@@ -143,7 +143,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '첨부된 이미지로 바로 진행하거나,\nAI가 추가 추구미 이미지를 생성할 수 있어요',
+                    'Proceed with the attached image,\nor let AI generate additional aesthetic images',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.5),
@@ -177,7 +177,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
                         ],
                       ),
                       child: const Text(
-                        '이 이미지로 바로 진행',
+                        'Proceed with this image',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -207,7 +207,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
                         color: Colors.white.withOpacity(0.06),
                       ),
                       child: Text(
-                        'AI로 추구미 이미지 추가 생성',
+                        'Generate more with AI',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.8),
@@ -388,7 +388,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     if (uid == null) {
       debugPrint('[Flow] 로그인 필요');
       if (mounted) {
-        _showWarningDialog('로그인이 필요합니다.');
+        _showWarningDialog('Login is required.');
         _goToStep(CreationStep.layoutRecommend);
       }
       return;
@@ -451,7 +451,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     } catch (e) {
       debugPrint('[Flow] SVG 생성 오류: $e');
       if (mounted) {
-        _showWarningDialog('SVG 생성 중 오류가 발생했습니다: $e');
+        _showWarningDialog('An error occurred during SVG generation: $e');
         _goToStep(CreationStep.layoutRecommend);
       }
     }
@@ -493,7 +493,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       if (sourceProject == null) {
         debugPrint('[Desk] ❌ 소스 프로젝트를 찾을 수 없습니다: $sourceProjectId');
         if (mounted) {
-          _showWarningDialog('템플릿 프로젝트를 찾을 수 없습니다.');
+          _showWarningDialog('Template project not found.');
           _goToStep(CreationStep.layoutRecommend);
         }
         return;
@@ -507,7 +507,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       if (initialSlider == null) {
         debugPrint('[Desk] ❌ 초기 슬라이더 데이터를 로드할 수 없습니다.');
         if (mounted) {
-          _showWarningDialog('초기 슬라이더 데이터를 로드할 수 없습니다.');
+          _showWarningDialog('Failed to load initial slider data.');
           _goToStep(CreationStep.layoutRecommend);
         }
         return;
@@ -538,7 +538,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     } catch (e) {
       debugPrint('[Desk] ❌ Desk 워크플로우 오류: $e');
       if (mounted) {
-        _showWarningDialog('컴카드 생성 중 오류가 발생했습니다: $e');
+        _showWarningDialog('An error occurred while creating the comp card: $e');
         _goToStep(CreationStep.layoutRecommend);
       }
     }
@@ -723,7 +723,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
                         ),
                       ),
                       child: const Text(
-                        '확인',
+                        'OK',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
@@ -955,7 +955,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
 
   // --- Step indicator (3 steps) ---
   Widget _buildStepIndicator() {
-    final steps = ['추구미', '합성 이미지', '레이아웃', '완성'];
+    final steps = ['Aesthetic', 'Composite', 'Layout', 'Complete'];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 48),
@@ -1081,8 +1081,8 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       case CreationStep.imageGeneration:
         child = _buildLoadingStep(
           key: const ValueKey('imageGeneration'),
-          message: '추구미 이미지를 생성하고 있어요...',
-          subMessage: 'AI가 프롬프트를 분석하고 이미지를 만들고 있습니다',
+          message: 'Generating aesthetic images...',
+          subMessage: 'AI is analyzing the prompt and creating images',
         );
       case CreationStep.imageSelection:
         child = VisageImageSelectStep(
@@ -1111,14 +1111,14 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       case CreationStep.layoutGenerating:
         child = _buildLoadingStep(
           key: const ValueKey('layoutGenerating'),
-          message: '레이아웃을 추천하고 있어요...',
-          subMessage: 'AI가 최적의 레이아웃을 구성하고 있습니다',
+          message: 'Recommending layouts...',
+          subMessage: 'AI is composing the optimal layout',
         );
       case CreationStep.processing:
         child = _buildLoadingStep(
           key: const ValueKey('processing'),
-          message: '컴카드를 합성하고 있어요...',
-          subMessage: '이미지를 합성하여 최종 컴카드를 만들고 있습니다',
+          message: 'Composing your comp card...',
+          subMessage: 'Combining images to create the final comp card',
         );
       case CreationStep.result:
         child = VisageResultStep(

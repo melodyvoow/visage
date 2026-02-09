@@ -54,7 +54,7 @@ class VisageSvgService {
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       // 2. Gemini로 SVG 생성 (레이아웃 이미지를 시각적 레퍼런스로 포함)
-      onState?.call('AI가 SVG 디자인을 생성하고 있어요...');
+      onState?.call('AI is generating SVG design...');
 
       final svgCode = await _generateSvgWithGemini(
         combinedPrompt,
@@ -63,26 +63,26 @@ class VisageSvgService {
 
       if (svgCode == null || svgCode.isEmpty) {
         debugPrint('[SVG] SVG 코드 비어있음');
-        onState?.call('SVG 생성 실패');
+        onState?.call('SVG generation failed');
         return null;
       }
 
       debugPrint('[SVG] SVG 생성 완료: ${svgCode.length}자');
 
       // 3. SVG → PNG 렌더링 (브라우저 네이티브 Canvas)
-      onState?.call('SVG를 이미지로 변환하고 있어요...');
+      onState?.call('Converting SVG to image...');
 
       final imageBytes = await svg_renderer.renderSvgToPng(svgCode, 1080);
       if (imageBytes == null) {
         debugPrint('[SVG] 이미지 렌더링 실패');
-        onState?.call('SVG 이미지 변환 실패');
+        onState?.call('SVG image conversion failed');
         return null;
       }
 
       debugPrint('[SVG] 이미지 렌더링 완료: ${imageBytes.length} bytes');
 
       // 4. NyxUploadFirecatCrudController.uploadFile()로 업로드
-      onState?.call('이미지를 업로드하고 있어요...');
+      onState?.call('Uploading image...');
 
       final platformFile = PlatformFile(
         name: 'visage_svg_${DateTime.now().millisecondsSinceEpoch}.png',
@@ -101,16 +101,16 @@ class VisageSvgService {
 
       if (uploadResult != null) {
         debugPrint('[SVG] 업로드 완료: ${uploadResult.uploadData?.ee_file_url}');
-        onState?.call('SVG 저장 완료!');
+        onState?.call('SVG saved!');
       } else {
         debugPrint('[SVG] 업로드 실패');
-        onState?.call('SVG 업로드 실패');
+        onState?.call('SVG upload failed');
       }
 
       return uploadResult;
     } catch (e) {
       debugPrint('[SVG] 예외: $e');
-      onState?.call('오류 발생: $e');
+      onState?.call('Error: $e');
       return null;
     }
   }

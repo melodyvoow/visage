@@ -42,7 +42,7 @@ class _VisageStyleSelectionStepState extends State<VisageStyleSelectionStep> {
             children: [
               // Header
               Text(
-                '디자인 스타일을 선택해주세요',
+                'Select a Design Style',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 28,
@@ -216,7 +216,7 @@ class _VisageStyleSelectionStepState extends State<VisageStyleSelectionStep> {
                         : null,
                   ),
                   child: Text(
-                    '이 스타일로 레이아웃 추천받기',
+                    'Get Layout Recommendations',
                     style: TextStyle(
                       color: _selected != null
                           ? Colors.white

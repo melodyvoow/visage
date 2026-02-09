@@ -48,7 +48,7 @@ class VisageResultStep extends StatelessWidget {
 
               // Title
               Text(
-                '컴카드가 완성되었습니다!',
+                'Your Comp Card is Ready!',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 28,
@@ -57,7 +57,7 @@ class VisageResultStep extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '나만의 컴카드가 성공적으로 생성되었어요',
+                'Your comp card has been successfully created',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.4),
                   fontSize: 14,
@@ -99,7 +99,7 @@ class VisageResultStep extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '(실제 합성 결과가 여기에 표시됩니다)',
+                          '(The actual composite result will be displayed here)',
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.25),
                             fontSize: 12,
@@ -182,7 +182,7 @@ class VisageResultStep extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '새로 만들기',
+                            'Create New',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.7),
                               fontSize: 14,
@@ -215,7 +215,7 @@ class VisageResultStep extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '홈으로',
+                            'Home',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.7),
                               fontSize: 14,

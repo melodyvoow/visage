@@ -100,7 +100,7 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
             children: [
               // Title
               Text(
-                '추구미 프롬프트를 입력해주세요',
+                'Enter Your Aesthetic Prompt',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 28,
@@ -109,7 +109,7 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
               ),
               const SizedBox(height: 8),
               Text(
-                '텍스트와 함께 이미지, PDF를 자유롭게 첨부할 수 있어요',
+                'You can freely attach images and PDFs along with text',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.4),
                   fontSize: 14,
@@ -160,7 +160,7 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '파일 첨부',
+                          'Attachments',
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.6),
                             fontSize: 14,
@@ -169,7 +169,7 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
                         ),
                         const Spacer(),
                         Text(
-                          '${_attachedFiles.length}개',
+                          '${_attachedFiles.length} files',
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.3),
                             fontSize: 12,
@@ -208,7 +208,7 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
         // Add image button
         _buildAddButton(
           icon: Icons.image_rounded,
-          label: '이미지',
+          label: 'Image',
           onTap: _pickImages,
         ),
 
@@ -355,7 +355,7 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
               : null,
         ),
         child: Text(
-          '다음',
+          'Next',
           style: TextStyle(
             color: _canSubmit ? Colors.white : Colors.white.withOpacity(0.3),
             fontSize: 16,

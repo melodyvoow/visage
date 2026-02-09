@@ -46,7 +46,7 @@ class _VisageLayoutRecommendStepState extends State<VisageLayoutRecommendStep> {
             children: [
               // Header
               Text(
-                '레이아웃을 선택해주세요',
+                'Select a Layout',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 28,
@@ -56,8 +56,8 @@ class _VisageLayoutRecommendStepState extends State<VisageLayoutRecommendStep> {
               const SizedBox(height: 8),
               Text(
                 widget.layoutImages.isEmpty
-                    ? '레이아웃 생성에 실패했습니다. 다시 시도해주세요.'
-                    : 'AI가 추천한 컴카드 레이아웃 중 하나를 선택하세요',
+                    ? 'Layout generation failed. Please try again.'
+                    : 'Select one of the AI-recommended comp card layouts',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.4),
                   fontSize: 14,
@@ -106,7 +106,7 @@ class _VisageLayoutRecommendStepState extends State<VisageLayoutRecommendStep> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '다시 추천',
+                            'Regenerate',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.7),
                               fontSize: 14,
@@ -153,7 +153,7 @@ class _VisageLayoutRecommendStepState extends State<VisageLayoutRecommendStep> {
                             : null,
                       ),
                       child: Text(
-                        '이 레이아웃으로 생성',
+                        'Create with this layout',
                         style: TextStyle(
                           color: _selectedIndex != null
                               ? Colors.white
@@ -240,7 +240,7 @@ class _VisageLayoutRecommendStepState extends State<VisageLayoutRecommendStep> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '생성 대기',
+                            'Pending',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.6),
                               fontSize: 13,
