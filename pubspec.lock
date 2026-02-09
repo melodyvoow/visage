@@ -322,7 +322,7 @@ packages:
     source: hosted
     version: "0.9.3+5"
   firebase_ai:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: firebase_ai
       sha256: f64e94c49a7dda7bddeb3c2818c31142af68482be73e5afd7de44eecff5b88b8
@@ -1514,7 +1514,7 @@ packages:
     source: hosted
     version: "15.0.2"
   web:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: web
       sha256: "868d88a33d8a87b18ffc05f9f030ba328ffefba92d6c127917a2ba740f9cfe4a"
