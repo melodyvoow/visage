@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:visage/widget/glass_container.dart';
 
 class VisageImageUploadStep extends StatefulWidget {
-  final void Function(Uint8List? image) onSubmit;
+  final void Function(List<Uint8List> images) onSubmit;
 
   const VisageImageUploadStep({super.key, required this.onSubmit});
 
@@ -13,20 +13,25 @@ class VisageImageUploadStep extends StatefulWidget {
 }
 
 class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
-  Uint8List? _uploadedImage;
-  String? _fileName;
+  final List<_UploadedImage> _images = [];
   final ImagePicker _picker = ImagePicker();
-  bool _isHovering = false;
 
-  Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      final bytes = await image.readAsBytes();
-      setState(() {
-        _uploadedImage = bytes;
-        _fileName = image.name;
-      });
+  Future<void> _pickImages() async {
+    final List<XFile> files = await _picker.pickMultiImage();
+    if (files.isNotEmpty) {
+      for (final file in files) {
+        final bytes = await file.readAsBytes();
+        setState(() {
+          _images.add(_UploadedImage(name: file.name, bytes: bytes));
+        });
+      }
     }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _images.removeAt(index);
+    });
   }
 
   @override
@@ -34,8 +39,8 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 640),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -50,7 +55,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
               ),
               const SizedBox(height: 8),
               Text(
-                '컴카드에 합성하고 싶은 인물 사진을 올려주세요',
+                '컴카드에 합성하고 싶은 사진을 올려주세요 (여러 장 가능)',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.4),
                   fontSize: 14,
@@ -58,18 +63,19 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
               ),
               const SizedBox(height: 32),
 
-              // Upload area
+              // Uploaded images grid + add button
               GlassContainer(
                 width: double.infinity,
-                child: _uploadedImage != null
-                    ? _buildPreview()
-                    : _buildUploadArea(),
+                child: _images.isEmpty
+                    ? _buildEmptyUploadArea()
+                    : _buildImageGrid(),
               ),
               const SizedBox(height: 24),
 
               // Submit button
               GestureDetector(
-                onTap: () => widget.onSubmit(_uploadedImage),
+                onTap: () =>
+                    widget.onSubmit(_images.map((e) => e.bytes).toList()),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 48,
@@ -98,6 +104,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -105,114 +112,173 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
     );
   }
 
-  Widget _buildUploadArea() {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovering = true),
-      onExit: (_) => setState(() => _isHovering = false),
-      child: GestureDetector(
-        onTap: _pickImage,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          height: 280,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: _isHovering
-                  ? const Color(0xFFE040FB).withOpacity(0.5)
-                  : Colors.white.withOpacity(0.15),
-              width: 1.5,
-            ),
-            color: _isHovering
-                ? Colors.white.withOpacity(0.03)
-                : Colors.transparent,
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
-                  ),
-                  child: Icon(
-                    Icons.add_photo_alternate_outlined,
-                    color: Colors.white.withOpacity(0.4),
-                    size: 32,
-                  ),
+  Widget _buildEmptyUploadArea() {
+    return GestureDetector(
+      onTap: _pickImages,
+      child: Container(
+        height: 280,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.15), width: 1.5),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.05),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  '클릭하여 이미지를 업로드하세요',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Icon(
+                  Icons.add_photo_alternate_outlined,
+                  color: Colors.white.withOpacity(0.4),
+                  size: 32,
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  'JPG, PNG, WEBP (최대 10MB)',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.25),
-                    fontSize: 12,
-                  ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '클릭하여 이미지를 업로드하세요',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.5),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'JPG, PNG, WEBP · 여러 장 선택 가능',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.25),
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildPreview() {
+  Widget _buildImageGrid() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Image.memory(
-            _uploadedImage!,
-            height: 280,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
-        ),
-        const SizedBox(height: 16),
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.check_circle_rounded,
-              color: Color(0xFFE040FB),
-              size: 16,
+            Icon(
+              Icons.photo_library_outlined,
+              color: Colors.white.withOpacity(0.5),
+              size: 18,
             ),
             const SizedBox(width: 8),
             Text(
-              _fileName ?? '이미지 선택됨',
+              '업로드된 이미지 (${_images.length}장)',
               style: TextStyle(
                 color: Colors.white.withOpacity(0.6),
-                fontSize: 13,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(width: 16),
-            GestureDetector(
-              onTap: _pickImage,
-              child: const Text(
-                '변경',
-                style: TextStyle(
-                  color: Color(0xFFE040FB),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            ..._images.asMap().entries.map(
+              (entry) => _buildImageThumbnail(entry.key, entry.value),
             ),
+            _buildAddButton(),
           ],
         ),
       ],
     );
   }
+
+  Widget _buildImageThumbnail(int index, _UploadedImage image) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Image.memory(
+            image.bytes,
+            width: 100,
+            height: 100,
+            fit: BoxFit.cover,
+          ),
+        ),
+        // Remove button
+        Positioned(
+          top: -6,
+          right: -6,
+          child: GestureDetector(
+            onTap: () => _removeImage(index),
+            child: Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.black.withOpacity(0.6),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: const Icon(
+                Icons.close_rounded,
+                color: Colors.white,
+                size: 12,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddButton() {
+    return GestureDetector(
+      onTap: _pickImages,
+      child: Container(
+        width: 100,
+        height: 100,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withOpacity(0.15), width: 1.5),
+          color: Colors.white.withOpacity(0.03),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.add_rounded,
+              color: Colors.white.withOpacity(0.4),
+              size: 28,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '추가',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.35),
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UploadedImage {
+  final String name;
+  final Uint8List bytes;
+
+  const _UploadedImage({required this.name, required this.bytes});
 }

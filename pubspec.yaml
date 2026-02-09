@@ -15,6 +15,7 @@ dependencies:
   http: ^1.4.0
   nyx_kernel:
     path: ../nyx_kernel
+  file_picker: ^10.3.10
 
 dev_dependencies:
   flutter_test:

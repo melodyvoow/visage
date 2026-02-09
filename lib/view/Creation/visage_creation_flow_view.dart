@@ -95,7 +95,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     _generateAestheticImages();
   }
 
-  void _onCompositeImageUploaded(Uint8List? image) {
+  void _onCompositeImagesUploaded(List<Uint8List> images) {
     _goToStep(CreationStep.processing);
     _simulateProcessing();
   }
@@ -444,7 +444,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       case CreationStep.imageUpload:
         child = VisageImageUploadStep(
           key: const ValueKey('imageUpload'),
-          onSubmit: _onCompositeImageUploaded,
+          onSubmit: _onCompositeImagesUploaded,
         );
       case CreationStep.processing:
         child = _buildLoadingStep(
