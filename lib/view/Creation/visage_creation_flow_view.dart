@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:nyx_kernel/nyx_kernel.dart';
 import 'package:nyx_kernel/Firecat/viewmodel/NyxUpload/nyx_upload_ux_card.dart';
-import 'package:nyx_kernel/Firecat/viewmodel/NyxVector/nyx_vector_ux_card.dart';
 import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/ProjectSlider/project_slider_firecat_crud_controller.dart';
 import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/ProjectSlider/project_slider_ux_card.dart';
 import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/ProjectSlider/SliderLayer/slider_layer_firecat_crud_controller.dart';
@@ -45,8 +44,6 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
   DesignStyle? _selectedStyle; // 선택된 디자인 스타일
   List<int> _recommendedLayoutIndices = []; // Gemini가 추천한 레이아웃 인덱스
   List<Uint8List> _layoutImages = []; // 레이아웃 추천 이미지
-  int? _selectedLayoutIndex; // 선택된 레이아웃 인덱스
-  List<NyxVectorUXThumbCardStore> _svgResults = []; // SVG 업로드 결과
 
   // Dynamic background
   Uint8List? _generatedBackground;
@@ -381,12 +378,11 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
   }
 
   void _onLayoutSelected(int index) {
-    _selectedLayoutIndex = index;
     _goToStep(CreationStep.processing);
     _generateSvgAndProceed(index);
   }
 
-  /// SVG 생성 + NyxVector 업로드 → Desk 워크플로우 진입
+  /// SVG 생성 + 이미지 업로드 → Desk 워크플로우 진입
   Future<void> _generateSvgAndProceed(int layoutIndex) async {
     final uid = NyxMemberFirecatAuthController.getCurrentUserUid();
     if (uid == null) {
@@ -437,7 +433,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       if (!mounted) return;
 
       if (result != null) {
-        setState(() => _svgResults = [result]);
+        setState(() => _compositeUploadResults.add(result));
       }
 
       debugPrint('[Flow] SVG 업로드 ${result != null ? "완료" : "실패"}');
@@ -750,8 +746,6 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       _selectedStyle = null;
       _recommendedLayoutIndices = [];
       _layoutImages = [];
-      _selectedLayoutIndex = null;
-      _svgResults = [];
       _generatedBackground = null;
     });
   }

@@ -12,8 +12,8 @@ dependencies:
   firebase_core: ^4.4.0
   cloud_firestore: ^6.1.0
   image_picker: ^1.2.1
-  firebase_ai: ^3.7.0
   http: ^1.4.0
+  web: ^1.1.1
 
   flutter_riverpod: ^2.6.1  # 업데이트 제외 (요청)
  
