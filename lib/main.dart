@@ -1,6 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:nyx_kernel/config/nyx_kernel_constants_config.dart';
+import 'package:nyx_kernel/config/nyx_kernel_theme_config.dart';
 import 'package:visage/firebase_options.dart';
+import 'config/visage_constants.dart';
+import 'config/visage_theme.dart';
 import 'view/Home/visage_home_view.dart';
 
 /*
@@ -25,6 +29,11 @@ gsutil cors set cors.json gs://lu-stock.appspot.com
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Nyx Kernel Config 초기화 (최우선)
+  NyxKernelConstantsConfig.initialize(VisageConstantsConfig());
+  NyxKernelThemeConfig.initialize(VisageThemeConfig());
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(const MainApp());
