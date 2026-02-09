@@ -16,6 +16,7 @@ import 'package:visage/service/nanobanana_service.dart';
 import 'package:visage/service/visage_svg_service.dart';
 import 'package:visage/view/Creation/visage_creation_types.dart';
 import 'package:visage/widget/glass_container.dart';
+import 'nyx_canvas_studio_view.dart';
 import 'step/visage_prompt_input_step.dart';
 import 'step/visage_image_select_step.dart';
 import 'step/visage_image_upload_step.dart';
@@ -654,11 +655,9 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
 
       navigator.push(
         MaterialPageRoute(
-          builder: (_) => NyxCanvasView(
+          builder: (_) => NyxCanvasStudioView(
             projectUXThumbCardStore: nyxProject,
-            playerUXThumbCardStore: member,
             databaseId: NyxConstants.databaseName,
-            onStart: () {},
           ),
         ),
       );

@@ -7,6 +7,8 @@ import 'package:nyx_kernel/Firecat/viewmodel/NyxMember/nyx_member_firecat_crud_c
 import 'package:visage/view/Creation/visage_creation_flow_view.dart';
 import 'package:visage/widget/glass_container.dart';
 
+import '../Creation/nyx_canvas_studio_view.dart';
+
 /// 생성된 컴카드 히스토리를 보여주는 포트폴리오 뷰
 class VisagePortfolioView extends StatefulWidget {
   const VisagePortfolioView({super.key});
@@ -161,11 +163,9 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => NyxCanvasView(
+        builder: (context) => NyxCanvasStudioView(
           projectUXThumbCardStore: project,
-          playerUXThumbCardStore: member,
           databaseId: NyxConstants.databaseName,
-          onStart: () {},
         ),
       ),
     );
