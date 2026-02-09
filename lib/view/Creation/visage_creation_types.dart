@@ -5,6 +5,8 @@ enum CreationStep {
   imageGeneration,
   imageSelection,
   imageUpload,
+  layoutRecommend,
+  layoutGenerating,
   processing,
   result,
 }

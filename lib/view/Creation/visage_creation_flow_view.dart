@@ -3,11 +3,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:visage/service/gemini_service.dart';
 import 'package:visage/service/imagen_service.dart';
+import 'package:visage/service/nanobanana_service.dart';
 import 'package:visage/view/Creation/visage_creation_types.dart';
 import 'package:visage/widget/glass_container.dart';
 import 'step/visage_prompt_input_step.dart';
 import 'step/visage_image_select_step.dart';
 import 'step/visage_image_upload_step.dart';
+import 'step/visage_layout_recommend_step.dart';
 import 'step/visage_result_step.dart';
 
 class VisageCreationFlowView extends StatefulWidget {
@@ -25,17 +27,22 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
   PromptData? _promptData;
   String? _analyzedPrompt; // Gemini 분석 결과
   List<Uint8List> _generatedImages = [];
+  int? _selectedAestheticIndex; // 선택된 추구미 이미지 인덱스
+  List<Uint8List> _compositeImages = []; // 합성용 상품 이미지
+  List<Uint8List> _layoutImages = []; // 레이아웃 추천 이미지
 
   // Dynamic background
   Uint8List? _generatedBackground;
 
-  // Step indicator mapping
+  // Step indicator mapping (4 steps)
   int get _indicatorStep => switch (_currentStep) {
     CreationStep.promptInput ||
     CreationStep.imageGeneration ||
     CreationStep.imageSelection => 0,
     CreationStep.imageUpload => 1,
-    CreationStep.processing || CreationStep.result => 2,
+    CreationStep.layoutRecommend ||
+    CreationStep.layoutGenerating => 2,
+    CreationStep.processing || CreationStep.result => 3,
   };
 
   void _goToStep(CreationStep step) {
@@ -258,6 +265,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
   }
 
   void _onImageSelected(int index) {
+    _selectedAestheticIndex = index;
     _goToStep(CreationStep.imageUpload);
   }
 
@@ -267,8 +275,56 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
   }
 
   void _onCompositeImagesUploaded(List<Uint8List> images) {
+    _compositeImages = images;
+    _goToStep(CreationStep.layoutGenerating);
+    _generateLayoutImages();
+  }
+
+  /// Nano Banana로 레이아웃 추천 이미지 생성
+  Future<void> _generateLayoutImages() async {
+    debugPrint('[Flow] 레이아웃 이미지 생성 시작 (NanoBanana)');
+
+    // 추구미 이미지 결정: 선택된 생성 이미지 또는 첨부 이미지
+    Uint8List? aestheticImage;
+    if (_selectedAestheticIndex != null &&
+        _selectedAestheticIndex! < _generatedImages.length) {
+      aestheticImage = _generatedImages[_selectedAestheticIndex!];
+    } else if (_promptData?.hasImage == true) {
+      final imageFile = _promptData!.files.firstWhere(
+        (f) => f.type == AttachedFileType.image,
+      );
+      aestheticImage = imageFile.bytes;
+    }
+
+    if (aestheticImage == null) {
+      debugPrint('[Flow] 추구미 이미지 없음 → 레이아웃 생성 불가');
+      if (mounted) _goToStep(CreationStep.layoutRecommend);
+      return;
+    }
+
+    final layouts = await NanoBananaService.generateLayoutImages(
+      aestheticImage: aestheticImage,
+      productImages: _compositeImages,
+      userPrompt: _analyzedPrompt ?? _promptData?.text,
+    );
+
+    if (mounted) {
+      debugPrint('[Flow] 레이아웃 이미지 ${layouts.length}장 생성 완료');
+      setState(() {
+        _layoutImages = layouts;
+      });
+      _goToStep(CreationStep.layoutRecommend);
+    }
+  }
+
+  void _onLayoutSelected(int index) {
     _goToStep(CreationStep.processing);
     _simulateProcessing();
+  }
+
+  void _onRegenerateLayouts() {
+    _goToStep(CreationStep.layoutGenerating);
+    _generateLayoutImages();
   }
 
   Future<void> _simulateProcessing() async {
@@ -285,6 +341,9 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       _promptData = null;
       _analyzedPrompt = null;
       _generatedImages = [];
+      _selectedAestheticIndex = null;
+      _compositeImages = [];
+      _layoutImages = [];
       _generatedBackground = null;
     });
   }
@@ -302,16 +361,20 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
         } else {
           _goToStep(CreationStep.imageSelection);
         }
+      case CreationStep.layoutRecommend:
+        _goToStep(CreationStep.imageUpload);
+      case CreationStep.layoutGenerating:
       case CreationStep.processing:
       case CreationStep.result:
-        break; // Cannot go back from processing/result
+        break; // Cannot go back from generating/processing/result
     }
   }
 
   bool get _showBackButton => switch (_currentStep) {
     CreationStep.promptInput ||
     CreationStep.imageSelection ||
-    CreationStep.imageUpload => true,
+    CreationStep.imageUpload ||
+    CreationStep.layoutRecommend => true,
     _ => false,
   };
 
@@ -477,7 +540,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
 
   // --- Step indicator (3 steps) ---
   Widget _buildStepIndicator() {
-    final steps = ['추구미 프롬프트', '합성 이미지', '컴카드 완성'];
+    final steps = ['추구미', '합성 이미지', '레이아웃', '완성'];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 48),
@@ -617,6 +680,19 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
         child = VisageImageUploadStep(
           key: const ValueKey('imageUpload'),
           onSubmit: _onCompositeImagesUploaded,
+        );
+      case CreationStep.layoutRecommend:
+        child = VisageLayoutRecommendStep(
+          key: const ValueKey('layoutRecommend'),
+          layoutImages: _layoutImages,
+          onLayoutSelected: _onLayoutSelected,
+          onRegenerate: _onRegenerateLayouts,
+        );
+      case CreationStep.layoutGenerating:
+        child = _buildLoadingStep(
+          key: const ValueKey('layoutGenerating'),
+          message: '레이아웃을 추천하고 있어요...',
+          subMessage: 'AI가 최적의 레이아웃을 구성하고 있습니다',
         );
       case CreationStep.processing:
         child = _buildLoadingStep(
