@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:visage/service/imagen_service.dart';
 import 'package:visage/view/Creation/visage_creation_types.dart';
 import 'package:visage/widget/glass_container.dart';
 import 'step/visage_prompt_input_step.dart';
@@ -21,6 +22,9 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
 
   // Flow data
   PromptData? _promptData;
+
+  // Dynamic background
+  Uint8List? _generatedBackground;
 
   // Step indicator mapping
   int get _indicatorStep => switch (_currentStep) {
@@ -43,6 +47,9 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
   void _onPromptSubmitted(PromptData data) {
     _promptData = data;
 
+    // 배경 이미지 생성을 병렬로 시작
+    _generateBackground(data);
+
     if (data.hasImage) {
       // Has image in attachments → go directly to upload step
       _goToStep(CreationStep.imageUpload);
@@ -50,6 +57,19 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       // No image → generate images
       _goToStep(CreationStep.imageGeneration);
       _simulateImageGeneration();
+    }
+  }
+
+  /// 프롬프트 기반 배경 이미지 생성 (병렬 실행)
+  Future<void> _generateBackground(PromptData data) async {
+    final prompt = data.text.isNotEmpty ? data.text : '아름다운 추상적인 배경';
+
+    final bgImage = await ImagenService.generateBackground(prompt);
+
+    if (mounted && bgImage != null) {
+      setState(() {
+        _generatedBackground = bgImage;
+      });
     }
   }
 
@@ -86,6 +106,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       _currentStep = CreationStep.promptInput;
       _isForward = false;
       _promptData = null;
+      _generatedBackground = null;
     });
   }
 
@@ -138,17 +159,33 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     );
   }
 
-  // --- Background image with soft orbs ---
+  // --- Background: static → AI-generated crossfade ---
   Widget _buildBackground() {
     final size = MediaQuery.of(context).size;
 
     return Stack(
       children: [
-        // Base image
-        SizedBox.expand(
-          child: Image.asset('assets/image/visage_bg.png', fit: BoxFit.cover),
+        // Crossfade between static and AI-generated background
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 1200),
+          child: _generatedBackground != null
+              ? SizedBox.expand(
+                  key: const ValueKey('generated_bg'),
+                  child: Image.memory(
+                    _generatedBackground!,
+                    fit: BoxFit.cover,
+                    gaplessPlayback: true,
+                  ),
+                )
+              : SizedBox.expand(
+                  key: const ValueKey('static_bg'),
+                  child: Image.asset(
+                    'assets/image/visage_bg.png',
+                    fit: BoxFit.cover,
+                  ),
+                ),
         ),
-        // Very light overlay to soften
+        // Soft overlay for glass readability
         Container(color: Colors.black.withOpacity(0.12)),
         // Floating orb – top right (warm pink)
         Positioned(
