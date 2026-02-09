@@ -36,7 +36,7 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
 
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560),
+        constraints: const BoxConstraints(maxWidth: 620),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
@@ -44,20 +44,21 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
             children: [
               // Title
               Text(
-                'Select an Aesthetic Image',
+                'SELECT YOUR MOOD',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 widget.images.isEmpty
                     ? 'Image generation failed. Please try again.'
-                    : 'Select the image you like from AI-generated options',
+                    : 'Select The Most Your Favorite Image, which AI Generated',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.4),
+                  color: Colors.white.withOpacity(0.5),
                   fontSize: 14,
                 ),
               ),
@@ -70,29 +71,29 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
                     childAspectRatio: 1,
                   ),
                   itemCount: imageCount,
                   itemBuilder: (context, index) => _buildImageCard(index),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
               // Action buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Regenerate button
+                  // Refresh button
                   GestureDetector(
                     onTap: widget.onRegenerate,
                     child: GlassContainer(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
+                        horizontal: 28,
                         vertical: 14,
                       ),
-                      borderRadius: 20,
+                      borderRadius: 28,
                       blur: 10,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -104,11 +105,12 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '다시 생성',
+                            'REFRESH',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.7),
                               fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1,
                             ),
                           ),
                         ],
@@ -125,39 +127,33 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
+                        horizontal: 40,
                         vertical: 14,
                       ),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        gradient: _selectedIndex != null
-                            ? const LinearGradient(
-                                colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
-                              )
-                            : null,
+                        borderRadius: BorderRadius.circular(28),
                         color: _selectedIndex != null
-                            ? null
-                            : Colors.white.withOpacity(0.05),
+                            ? const Color(0xFF15234A)
+                            : const Color(0xFF15234A).withOpacity(0.4),
                         boxShadow: _selectedIndex != null
                             ? [
                                 BoxShadow(
-                                  color: const Color(
-                                    0xFF7B2FBE,
-                                  ).withOpacity(0.4),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 8),
+                                  color: const Color(0xFF15234A).withOpacity(0.5),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 6),
                                 ),
                               ]
                             : null,
                       ),
                       child: Text(
-                        'Proceed with this image',
+                        'SELECT',
                         style: TextStyle(
                           color: _selectedIndex != null
                               ? Colors.white
-                              : Colors.white.withOpacity(0.3),
+                              : Colors.white.withOpacity(0.4),
                           fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 2,
                         ),
                       ),
                     ),
@@ -187,16 +183,16 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
-                  ? const Color(0xFFE040FB)
+                  ? Colors.white.withOpacity(0.6)
                   : isHovered
-                  ? Colors.white.withOpacity(0.3)
-                  : Colors.white.withOpacity(0.1),
-              width: isSelected ? 2.5 : 1.5,
+                      ? Colors.white.withOpacity(0.3)
+                      : Colors.white.withOpacity(0.1),
+              width: isSelected ? 3 : 1.5,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: const Color(0xFFE040FB).withOpacity(0.3),
+                      color: Colors.white.withOpacity(0.15),
                       blurRadius: 16,
                       spreadRadius: 2,
                     ),
@@ -204,7 +200,7 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
                 : null,
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(17),
             child: Stack(
               children: [
                 // 실제 이미지 또는 fallback 그라데이션
@@ -246,34 +242,6 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                  ),
-
-                // Selection overlay
-                if (isSelected)
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFE040FB).withOpacity(0.4),
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.check_rounded,
-                        color: Colors.white,
-                        size: 16,
                       ),
                     ),
                   ),

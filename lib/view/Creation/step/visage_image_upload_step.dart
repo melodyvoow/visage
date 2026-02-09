@@ -144,7 +144,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 640),
+        constraints: const BoxConstraints(maxWidth: 720),
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
@@ -152,18 +152,19 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
             children: [
               // Title
               Text(
-                'Upload Images for Compositing',
+                'ADD IMAGES TO MERGE',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Upload photos to composite into your comp card (multiple allowed)',
+                'Select Multiple Images You Would Like to Add Your Work',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.4),
+                  color: Colors.white.withOpacity(0.5),
                   fontSize: 14,
                 ),
               ),
@@ -172,11 +173,12 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
               // Uploaded images grid + add button
               GlassContainer(
                 width: double.infinity,
+                padding: const EdgeInsets.all(32),
                 child: _images.isEmpty
                     ? _buildEmptyUploadArea()
                     : _buildImageGrid(),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
               // Upload progress
               if (_isUploading) ...[
@@ -191,7 +193,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            const Color(0xFFE040FB),
+                            const Color(0xFF15234A),
                           ),
                         ),
                       ),
@@ -225,37 +227,33 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 48,
+                      horizontal: 56,
                       vertical: 16,
                     ),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      gradient: _images.isNotEmpty
-                          ? const LinearGradient(
-                              colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
-                            )
-                          : null,
+                      borderRadius: BorderRadius.circular(28),
                       color: _images.isNotEmpty
-                          ? null
-                          : Colors.white.withOpacity(0.05),
+                          ? const Color(0xFF15234A)
+                          : const Color(0xFF15234A).withOpacity(0.4),
                       boxShadow: _images.isNotEmpty
                           ? [
                               BoxShadow(
-                                color: const Color(0xFF7B2FBE).withOpacity(0.4),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
+                                color: const Color(0xFF15234A).withOpacity(0.5),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
                               ),
                             ]
                           : null,
                     ),
                     child: Text(
-                      'Composite',
+                      'MERGE',
                       style: TextStyle(
                         color: _images.isNotEmpty
                             ? Colors.white
-                            : Colors.white.withOpacity(0.3),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                            : Colors.white.withOpacity(0.4),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2,
                       ),
                     ),
                   ),
@@ -271,44 +269,34 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
   Widget _buildEmptyUploadArea() {
     return GestureDetector(
       onTap: _pickImages,
-      child: Container(
-        height: 280,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.15), width: 1.5),
-        ),
+      child: SizedBox(
+        height: 180,
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.05),
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
-                ),
-                child: Icon(
-                  Icons.add_photo_alternate_outlined,
-                  color: Colors.white.withOpacity(0.4),
-                  size: 32,
-                ),
+              Icon(
+                Icons.description_outlined,
+                color: Colors.white.withOpacity(0.6),
+                size: 28,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(
-                'Click to upload images',
+                'UPLOAD YOUR IMAGES',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
-                'JPG, PNG, WEBP · Multiple selection allowed',
+                'JPG, PNG, WEBP · Multiple Images Allowed',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.25),
+                  color: Colors.white.withOpacity(0.35),
                   fontSize: 12,
                 ),
               ),
@@ -320,39 +308,20 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
   }
 
   Widget _buildImageGrid() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              Icons.photo_library_outlined,
-              color: Colors.white.withOpacity(0.5),
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              '업로드된 이미지 (${_images.length}장)',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
+    return GestureDetector(
+      onTap: _pickImages,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 180),
+        child: Wrap(
+          spacing: 14,
+          runSpacing: 14,
           children: [
             ..._images.asMap().entries.map(
               (entry) => _buildImageThumbnail(entry.key, entry.value),
             ),
-            _buildAddButton(),
           ],
         ),
-      ],
+      ),
     );
   }
 
@@ -361,11 +330,11 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
       clipBehavior: Clip.none,
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           child: Image.memory(
             image.bytes,
-            width: 100,
-            height: 100,
+            width: 140,
+            height: 140,
             fit: BoxFit.cover,
           ),
         ),
@@ -376,11 +345,11 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
           child: GestureDetector(
             onTap: () => _removeImage(index),
             child: Container(
-              width: 22,
-              height: 22,
+              width: 26,
+              height: 26,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.black.withOpacity(0.6),
+                color: const Color(0xFF15234A),
                 border: Border.all(
                   color: Colors.white.withOpacity(0.3),
                   width: 1,
@@ -389,45 +358,12 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
               child: const Icon(
                 Icons.close_rounded,
                 color: Colors.white,
-                size: 12,
+                size: 14,
               ),
             ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildAddButton() {
-    return GestureDetector(
-      onTap: _pickImages,
-      child: Container(
-        width: 100,
-        height: 100,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withOpacity(0.15), width: 1.5),
-          color: Colors.white.withOpacity(0.03),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.add_rounded,
-              color: Colors.white.withOpacity(0.4),
-              size: 28,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Add',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.35),
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

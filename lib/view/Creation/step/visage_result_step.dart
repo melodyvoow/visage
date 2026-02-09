@@ -15,7 +15,7 @@ class VisageResultStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 640),
+        constraints: const BoxConstraints(maxWidth: 720),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
@@ -27,12 +27,10 @@ class VisageResultStep extends StatelessWidget {
                 height: 72,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
-                  ),
+                  color: const Color(0xFF15234A),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF7B2FBE).withOpacity(0.4),
+                      color: const Color(0xFF15234A).withOpacity(0.4),
                       blurRadius: 24,
                       spreadRadius: 4,
                     ),
@@ -48,18 +46,19 @@ class VisageResultStep extends StatelessWidget {
 
               // Title
               Text(
-                'Your Comp Card is Ready!',
+                'YOUR COMP CARD IS READY!',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Your comp card has been successfully created',
+                'Your Comp Card Has Been Successfully Created',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.4),
+                  color: Colors.white.withOpacity(0.5),
                   fontSize: 14,
                 ),
               ),
@@ -90,7 +89,7 @@ class VisageResultStep extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          '완성된 컴카드',
+                          'Completed Comp Card',
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.5),
                             fontSize: 16,
@@ -123,19 +122,17 @@ class VisageResultStep extends StatelessWidget {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
+                        horizontal: 40,
                         vertical: 14,
                       ),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
-                        ),
+                        borderRadius: BorderRadius.circular(28),
+                        color: const Color(0xFF15234A),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF7B2FBE).withOpacity(0.4),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
+                            color: const Color(0xFF15234A).withOpacity(0.5),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
                           ),
                         ],
                       ),
@@ -149,11 +146,12 @@ class VisageResultStep extends StatelessWidget {
                           ),
                           SizedBox(width: 8),
                           Text(
-                            '다운로드',
+                            'DOWNLOAD',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 14,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1,
                             ),
                           ),
                         ],
@@ -167,10 +165,10 @@ class VisageResultStep extends StatelessWidget {
                     onTap: onCreateNew,
                     child: GlassContainer(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
+                        horizontal: 28,
                         vertical: 14,
                       ),
-                      borderRadius: 20,
+                      borderRadius: 28,
                       blur: 10,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -182,11 +180,12 @@ class VisageResultStep extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Create New',
+                            'NEW',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.7),
                               fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1,
                             ),
                           ),
                         ],
@@ -200,10 +199,10 @@ class VisageResultStep extends StatelessWidget {
                     onTap: onGoHome,
                     child: GlassContainer(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
+                        horizontal: 28,
                         vertical: 14,
                       ),
-                      borderRadius: 20,
+                      borderRadius: 28,
                       blur: 10,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -215,11 +214,12 @@ class VisageResultStep extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Home',
+                            'HOME',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.7),
                               fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1,
                             ),
                           ),
                         ],

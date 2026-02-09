@@ -164,25 +164,24 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
-                        ),
+                        borderRadius: BorderRadius.circular(28),
+                        color: const Color(0xFF15234A),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF7B2FBE).withOpacity(0.3),
+                            color: const Color(0xFF15234A).withOpacity(0.5),
                             blurRadius: 16,
                             offset: const Offset(0, 6),
                           ),
                         ],
                       ),
                       child: const Text(
-                        'Proceed with this image',
+                        'PROCEED',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
                           decoration: TextDecoration.none,
                         ),
                       ),
@@ -538,7 +537,9 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     } catch (e) {
       debugPrint('[Desk] ❌ Desk 워크플로우 오류: $e');
       if (mounted) {
-        _showWarningDialog('An error occurred while creating the comp card: $e');
+        _showWarningDialog(
+          'An error occurred while creating the comp card: $e',
+        );
         _goToStep(CreationStep.layoutRecommend);
       }
     }
@@ -911,40 +912,36 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
           if (_showBackButton)
             GestureDetector(
               onTap: _onBack,
-              child: GlassContainer(
-                padding: const EdgeInsets.all(12),
-                borderRadius: 16,
-                blur: 10,
+              child: Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: Colors.white.withOpacity(0.12),
+                ),
                 child: Icon(
                   Icons.arrow_back_ios_new_rounded,
                   color: Colors.white.withOpacity(0.8),
-                  size: 18,
+                  size: 22,
                 ),
               ),
             )
           else
-            const SizedBox(width: 42),
-          const Spacer(),
-          Text(
-            'VISAGE',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.6),
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 4,
-            ),
-          ),
+            const SizedBox(width: 54),
           const Spacer(),
           GestureDetector(
             onTap: () => Navigator.of(context).pop(),
-            child: GlassContainer(
-              padding: const EdgeInsets.all(12),
-              borderRadius: 16,
-              blur: 10,
+            child: Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.white.withOpacity(0.12),
+              ),
               child: Icon(
                 Icons.close_rounded,
                 color: Colors.white.withOpacity(0.8),
-                size: 18,
+                size: 24,
               ),
             ),
           ),
@@ -953,90 +950,59 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     );
   }
 
-  // --- Step indicator (3 steps) ---
+  // --- Step indicator (4 steps) ---
   Widget _buildStepIndicator() {
-    final steps = ['Aesthetic', 'Composite', 'Layout', 'Complete'];
+    final steps = ['Create Moodboard', 'Image Merge', 'Layout', 'Complete'];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 48),
-      child: Row(
-        children: List.generate(steps.length * 2 - 1, (index) {
-          if (index.isOdd) {
-            // Connector line
-            final stepIndex = index ~/ 2;
-            final isCompleted = _indicatorStep > stepIndex;
-            return Expanded(
-              child: Container(
-                height: 1.5,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  gradient: isCompleted
-                      ? const LinearGradient(
-                          colors: [Color(0xFF9B6FD6), Color(0xFFD070F0)],
-                        )
-                      : null,
-                  color: isCompleted ? null : Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(1),
-                ),
-              ),
-            );
-          } else {
-            // Step dot with label
-            final stepIndex = index ~/ 2;
-            final isActive = _indicatorStep == stepIndex;
-            final isCompleted = _indicatorStep > stepIndex;
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Top row: circles + connector lines
+          Row(
+            children: List.generate(steps.length * 2 - 1, (index) {
+              if (index.isOdd) {
+                // Connector line
+                final stepIndex = index ~/ 2;
+                final isCompleted = _indicatorStep > stepIndex;
+                return Expanded(
+                  child: Container(
+                    height: 1.5,
+                    margin: const EdgeInsets.symmetric(horizontal: 8),
+                    color: isCompleted
+                        ? const Color(0xFF15234A)
+                        : Colors.white.withOpacity(0.15),
+                  ),
+                );
+              } else {
+                // Step circle
+                final stepIndex = index ~/ 2;
+                final isActive = _indicatorStep == stepIndex;
+                final isCompleted = _indicatorStep > stepIndex;
 
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedContainer(
+                return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  width: 34,
-                  height: 34,
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: (isActive || isCompleted)
-                        ? const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF9B6FD6), Color(0xFFD070F0)],
-                          )
-                        : LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Colors.white.withOpacity(0.18),
-                              Colors.white.withOpacity(0.08),
-                            ],
-                          ),
+                    color: (isActive || isCompleted)
+                        ? const Color(0xFF15234A)
+                        : Colors.white.withOpacity(0.12),
                     border: Border.all(
                       color: (isActive || isCompleted)
-                          ? Colors.white.withOpacity(0.3)
-                          : Colors.white.withOpacity(0.25),
-                      width: 0.8,
+                          ? const Color(0xFF15234A)
+                          : Colors.white.withOpacity(0.2),
+                      width: 1,
                     ),
-                    boxShadow: isActive
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFF9B6FD6).withOpacity(0.35),
-                              blurRadius: 16,
-                              spreadRadius: 1,
-                            ),
-                          ]
-                        : [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.06),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
                   ),
                   child: Center(
                     child: isCompleted
                         ? const Icon(
                             Icons.check_rounded,
                             color: Colors.white,
-                            size: 16,
+                            size: 22,
                           )
                         : Text(
                             '${stepIndex + 1}',
@@ -1044,27 +1010,43 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
                               color: isActive
                                   ? Colors.white
                                   : Colors.white.withOpacity(0.4),
-                              fontSize: 13,
+                              fontSize: 18,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  steps[stepIndex],
-                  style: TextStyle(
-                    color: isActive
-                        ? Colors.white.withOpacity(0.9)
-                        : Colors.white.withOpacity(0.4),
-                    fontSize: 12,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                );
+              }
+            }),
+          ),
+          const SizedBox(height: 8),
+          // Bottom row: labels only
+          Row(
+            children: List.generate(steps.length * 2 - 1, (index) {
+              if (index.isOdd) {
+                return const Expanded(child: SizedBox());
+              } else {
+                final stepIndex = index ~/ 2;
+                final isActive = _indicatorStep == stepIndex;
+
+                return SizedBox(
+                  width: 48,
+                  child: Text(
+                    steps[stepIndex],
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: isActive
+                          ? Colors.white.withOpacity(0.9)
+                          : Colors.white.withOpacity(0.4),
+                      fontSize: 14,
+                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                    ),
                   ),
-                ),
-              ],
-            );
-          }
-        }),
+                );
+              }
+            }),
+          ),
+        ],
       ),
     );
   }
@@ -1226,7 +1208,7 @@ class _GlassLoadingIndicatorState extends State<_GlassLoadingIndicator>
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF9B6FD6).withOpacity(0.25),
+                  color: const Color(0xFF15234A).withOpacity(0.25),
                   blurRadius: 32,
                   spreadRadius: 4,
                 ),
@@ -1243,10 +1225,10 @@ class _GlassLoadingIndicatorState extends State<_GlassLoadingIndicator>
                 shape: BoxShape.circle,
                 gradient: SweepGradient(
                   colors: [
-                    const Color(0xFF9B6FD6),
-                    const Color(0xFFD070F0),
+                    const Color(0xFF15234A),
+                    const Color(0xFF2A4080),
                     const Color(0xFFB5D4FF).withOpacity(0.4),
-                    const Color(0xFF9B6FD6).withOpacity(0.0),
+                    const Color(0xFF15234A).withOpacity(0.0),
                   ],
                   stops: const [0.0, 0.35, 0.65, 1.0],
                 ),

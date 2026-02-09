@@ -44,10 +44,10 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
     }
   }
 
-  Future<void> _pickPdf() async {
+  Future<void> _pickFiles() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['pdf'],
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
       allowMultiple: true,
       withData: true,
     );
@@ -55,12 +55,14 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
     if (result != null) {
       for (final file in result.files) {
         if (file.bytes != null) {
+          final ext = file.extension?.toLowerCase() ?? '';
+          final isImage = ['jpg', 'jpeg', 'png'].contains(ext);
           setState(() {
             _attachedFiles.add(
               AttachedFile(
                 name: file.name,
                 bytes: file.bytes!,
-                type: AttachedFileType.pdf,
+                type: isImage ? AttachedFileType.image : AttachedFileType.pdf,
               ),
             );
           });
@@ -92,7 +94,7 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 640),
+        constraints: const BoxConstraints(maxWidth: 720),
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
@@ -100,91 +102,72 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
             children: [
               // Title
               Text(
-                'Enter Your Aesthetic Prompt',
+                'INPUT YOUR PROMPT',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'You can freely attach images and PDFs along with text',
+                'Visualize Your Design Mood with Upload Your Reference Files',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.4),
+                  color: Colors.white.withOpacity(0.5),
                   fontSize: 14,
                 ),
               ),
               const SizedBox(height: 32),
 
-              // Text input area
-              GlassContainer(
-                width: double.infinity,
-                child: TextField(
-                  controller: _textController,
-                  onChanged: (_) => setState(() {}),
-                  maxLines: 6,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 15,
-                    height: 1.6,
-                  ),
-                  decoration: InputDecoration(
-                    hintText:
-                        '원하는 추구미를 자유롭게 묘사해주세요.\n\n예: 몽환적인 분위기의 파스텔톤 인물 사진, 부드러운 자연광...',
-                    hintStyle: TextStyle(
-                      color: Colors.white.withOpacity(0.2),
-                      fontSize: 15,
-                      height: 1.6,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
+              // Text input area with "+" overlay
+              GestureDetector(
+                onTap: _pickImages,
+                child: GlassContainer(
+                  width: double.infinity,
+                  child: Stack(
+                    children: [
+                      // Text field
+                      TextField(
+                        controller: _textController,
+                        onChanged: (_) => setState(() {}),
+                        maxLines: 7,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 15,
+                          height: 1.6,
+                        ),
+                        decoration: InputDecoration(
+                          hintText:
+                              'Modern and Minimal, Mute Pink, Model Portfolio',
+                          hintStyle: TextStyle(
+                            color: Colors.white.withOpacity(0.3),
+                            fontSize: 15,
+                            height: 1.6,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
+
               const SizedBox(height: 16),
 
-              // File attachment area
+              // File upload area
               GlassContainer(
                 width: double.infinity,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header row
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.attach_file_rounded,
-                          color: Colors.white.withOpacity(0.6),
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Attachments',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          '${_attachedFiles.length} files',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.3),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Attached files grid + add buttons
-                    _buildFileGrid(),
-                  ],
+                padding: const EdgeInsets.symmetric(
+                  vertical: 32,
+                  horizontal: 32,
                 ),
+                child: _attachedFiles.isEmpty
+                    ? _buildEmptyUploadArea()
+                    : _buildUploadedFilesArea(),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
               // Submit button
               _buildSubmitButton(),
@@ -196,27 +179,75 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
     );
   }
 
-  // --- File attachment grid ---
-  Widget _buildFileGrid() {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
+  // --- Empty upload area ---
+  Widget _buildEmptyUploadArea() {
+    return GestureDetector(
+      onTap: _pickFiles,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.description_outlined,
+            color: Colors.white.withOpacity(0.6),
+            size: 28,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'UPLOAD YOUR VISUAL IDEA & YOUR STORY',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'PDF, JPG, PNG files are allowed',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.35),
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- Uploaded files area with add button ---
+  Widget _buildUploadedFilesArea() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Existing attached files
-        for (int i = 0; i < _attachedFiles.length; i++) _buildFileThumbnail(i),
-
-        // Add image button
-        _buildAddButton(
-          icon: Icons.image_rounded,
-          label: 'Image',
-          onTap: _pickImages,
+        Row(
+          children: [
+            Icon(
+              Icons.attach_file_rounded,
+              color: Colors.white.withOpacity(0.5),
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Attached Files (${_attachedFiles.length})',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
-
-        // Add PDF button
-        _buildAddButton(
-          icon: Icons.picture_as_pdf_rounded,
-          label: 'PDF',
-          onTap: _pickPdf,
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            for (int i = 0; i < _attachedFiles.length; i++)
+              _buildFileThumbnail(i),
+            _buildAddButton(),
+          ],
         ),
       ],
     );
@@ -227,6 +258,7 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
     final isImage = file.type == AttachedFileType.image;
 
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         Container(
           width: 88,
@@ -271,8 +303,8 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
         ),
         // Remove button
         Positioned(
-          top: -4,
-          right: -4,
+          top: -6,
+          right: -6,
           child: GestureDetector(
             onTap: () => _removeFile(index),
             child: Container(
@@ -281,7 +313,10 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.black.withOpacity(0.6),
-                border: Border.all(color: Colors.white.withOpacity(0.2)),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1,
+                ),
               ),
               child: const Icon(
                 Icons.close_rounded,
@@ -295,32 +330,32 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
     );
   }
 
-  Widget _buildAddButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
+  // --- Add file button ---
+  Widget _buildAddButton() {
     return GestureDetector(
-      onTap: onTap,
+      onTap: _pickFiles,
       child: Container(
         width: 88,
         height: 88,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withOpacity(0.12), width: 1.5),
-          color: Colors.white.withOpacity(0.04),
+          border: Border.all(color: Colors.white.withOpacity(0.15), width: 1.5),
+          color: Colors.white.withOpacity(0.03),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white.withOpacity(0.35), size: 24),
-            const SizedBox(height: 6),
+            Icon(
+              Icons.add_rounded,
+              color: Colors.white.withOpacity(0.4),
+              size: 28,
+            ),
+            const SizedBox(height: 4),
             Text(
-              label,
+              'Add',
               style: TextStyle(
                 color: Colors.white.withOpacity(0.35),
                 fontSize: 11,
-                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -335,31 +370,29 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
       onTap: _canSubmit ? _submit : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: _canSubmit
-              ? const LinearGradient(
-                  colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
-                )
-              : null,
-          color: _canSubmit ? null : Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(28),
+          color: _canSubmit
+              ? const Color(0xFF15234A)
+              : const Color(0xFF15234A).withOpacity(0.4),
           boxShadow: _canSubmit
               ? [
                   BoxShadow(
-                    color: const Color(0xFF7B2FBE).withOpacity(0.4),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
+                    color: const Color(0xFF15234A).withOpacity(0.5),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
                 ]
               : null,
         ),
         child: Text(
-          'Next',
+          'NEXT',
           style: TextStyle(
-            color: _canSubmit ? Colors.white : Colors.white.withOpacity(0.3),
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+            color: _canSubmit ? Colors.white : Colors.white.withOpacity(0.4),
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2,
           ),
         ),
       ),
