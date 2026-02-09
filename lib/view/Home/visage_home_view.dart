@@ -18,6 +18,14 @@ class _VisageHomeViewState extends State<VisageHomeView> {
   bool get _isLoggedIn =>
       NyxMemberFirecatAuthController.getCurrentUserUid() != null;
 
+  Future<void> _handleLogout() async {
+    await NyxMemberFirecatAuthController.signOut();
+    if (mounted) {
+      setState(() {});
+      debugPrint('✅ 로그아웃 완료');
+    }
+  }
+
   Future<void> _handleGoogleLogin() async {
     if (_isLoginInProgress) return;
 
@@ -231,11 +239,40 @@ class _VisageHomeViewState extends State<VisageHomeView> {
             ),
           ),
         ),
+        const SizedBox(width: 16),
+        // 로그아웃 버튼
+        SizedBox(
+          height: _btnHeight,
+          child: ElevatedButton.icon(
+            onPressed: _handleLogout,
+            icon: const Icon(Icons.logout_rounded, size: 18),
+            label: const Text(
+              'LOGOUT',
+              style: TextStyle(
+                fontSize: _btnFontSize,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.5,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white.withOpacity(0.08),
+              foregroundColor: Colors.white.withOpacity(0.5),
+              padding: _btnPadding,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_btnRadius),
+                side: BorderSide(
+                  color: Colors.white.withOpacity(0.15),
+                  width: 1,
+                ),
+              ),
+              elevation: 0,
+            ),
+          ),
+        ),
       ],
     );
   }
 
-  /// Google 로그인 버튼
   Widget _buildGoogleLoginButton() {
     return GestureDetector(
       key: const ValueKey('loginButton'),

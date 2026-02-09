@@ -612,7 +612,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     List<SliderLayerUXThumbCardStore> initialLayers,
     String projectId,
   ) {
-    Navigator.push(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
         builder: (context) => NyxCanvasAiAgentShadowView(
@@ -624,6 +624,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
         ),
         fullscreenDialog: true,
       ),
+      (route) => route.isFirst,
     );
   }
 
@@ -642,7 +643,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       final member = await NyxMemberFirecatCrudController.getMember(uid);
       if (member == null || !mounted) return;
 
-      Navigator.push(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
           builder: (context) => NyxCanvasView(
@@ -652,6 +653,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
             onStart: () {},
           ),
         ),
+        (route) => route.isFirst,
       );
     } catch (e) {
       debugPrint('[Desk] ❌ Canvas 이동 오류: $e');
