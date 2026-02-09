@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:nyx_kernel/Firecat/viewmodel/NyxUpload/nyx_upload_ux_card.dart';
 import 'package:visage/service/gemini_service.dart';
 import 'package:visage/service/imagen_service.dart';
 import 'package:visage/service/nanobanana_service.dart';
@@ -29,6 +30,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
   List<Uint8List> _generatedImages = [];
   int? _selectedAestheticIndex; // 선택된 추구미 이미지 인덱스
   List<Uint8List> _compositeImages = []; // 합성용 상품 이미지
+  List<NyxUploadUXThumbCardStore> _compositeUploadResults = []; // 업로드 결과
   List<Uint8List> _layoutImages = []; // 레이아웃 추천 이미지
 
   // Dynamic background
@@ -274,8 +276,18 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     _analyzeAndGenerate();
   }
 
-  void _onCompositeImagesUploaded(List<Uint8List> images) {
+  void _onCompositeImagesUploaded(
+    List<Uint8List> images,
+    List<NyxUploadUXThumbCardStore> uploadResults,
+  ) {
     _compositeImages = images;
+    _compositeUploadResults = uploadResults;
+
+    debugPrint('[Flow] 합성 이미지 ${images.length}장, 업로드 결과 ${uploadResults.length}건');
+    for (final result in uploadResults) {
+      debugPrint('[Flow]   - doc: ${result.documentRef?.id}, url: ${result.uploadData?.ee_file_url}');
+    }
+
     _goToStep(CreationStep.layoutGenerating);
     _generateLayoutImages();
   }
@@ -343,6 +355,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       _generatedImages = [];
       _selectedAestheticIndex = null;
       _compositeImages = [];
+      _compositeUploadResults = [];
       _layoutImages = [];
       _generatedBackground = null;
     });

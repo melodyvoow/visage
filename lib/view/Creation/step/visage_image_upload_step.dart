@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nyx_kernel/Firecat/viewmodel/NyxMember/nyx_member_firecat_auth_controller.dart';
 import 'package:nyx_kernel/Firecat/viewmodel/NyxUpload/nyx_upload_firecat_crud_controller.dart';
+import 'package:nyx_kernel/Firecat/viewmodel/NyxUpload/nyx_upload_ux_card.dart';
 import 'package:visage/widget/glass_container.dart';
 
 class VisageImageUploadStep extends StatefulWidget {
-  final void Function(List<Uint8List> images) onSubmit;
+  final void Function(
+    List<Uint8List> images,
+    List<NyxUploadUXThumbCardStore> uploadResults,
+  ) onSubmit;
 
   const VisageImageUploadStep({super.key, required this.onSubmit});
 
@@ -64,6 +68,8 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
       _uploadProgress = '업로드 준비 중...';
     });
 
+    final List<NyxUploadUXThumbCardStore> uploadResults = [];
+
     try {
       for (var i = 0; i < _images.length; i++) {
         final image = _images[i];
@@ -87,14 +93,15 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
         );
 
         if (result != null) {
-          debugPrint('[VisageUpload] 업로드 성공: ${image.name}');
+          uploadResults.add(result);
+          debugPrint('[VisageUpload] 업로드 성공: ${image.name} → ${result.uploadData?.ee_file_url}');
           setState(() => _uploadedCount = i + 1);
         } else {
           debugPrint('[VisageUpload] 업로드 실패: ${image.name}');
         }
       }
 
-      debugPrint('[VisageUpload] 전체 업로드 완료: $_uploadedCount/${_images.length}');
+      debugPrint('[VisageUpload] 전체 업로드 완료: ${uploadResults.length}/${_images.length}');
     } catch (e) {
       debugPrint('[VisageUpload] 업로드 오류: $e');
       if (mounted) {
@@ -114,8 +121,23 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
       }
     }
 
-    // 업로드 완료 후 다음 스텝으로 진행
-    widget.onSubmit(_images.map((e) => e.bytes).toList());
+    if (uploadResults.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('업로드에 실패했습니다. 다시 시도해주세요.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    // 업로드 완료 후 이미지 + 업로드 결과를 함께 전달
+    widget.onSubmit(
+      _images.map((e) => e.bytes).toList(),
+      uploadResults,
+    );
   }
 
   @override
