@@ -827,7 +827,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
               : SizedBox.expand(
                   key: const ValueKey('static_bg'),
                   child: Image.asset(
-                    'assets/image/visage_bg.png',
+                    'assets/image/visage_bg_ee.jpeg',
                     fit: BoxFit.cover,
                   ),
                 ),
