@@ -10,6 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
   firebase_core: ^4.4.0
+  image_picker: ^1.2.1
+  firebase_ai: ^3.7.0
 
 dev_dependencies:
   flutter_test:

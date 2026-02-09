@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:visage/view/Creation/visage_creation_flow_view.dart';
 import 'component/visage_home_scratch_card.dart';
 
 class VisageHomeView extends StatelessWidget {
@@ -33,7 +34,23 @@ class VisageHomeView extends StatelessWidget {
             // CTA 버튼
             ElevatedButton(
               onPressed: () {
-                // TODO: 입력 폼으로 이동
+                Navigator.of(context).push(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        const VisageCreationFlowView(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                          return FadeTransition(
+                            opacity: CurvedAnimation(
+                              parent: animation,
+                              curve: Curves.easeInOut,
+                            ),
+                            child: child,
+                          );
+                        },
+                    transitionDuration: const Duration(milliseconds: 500),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
