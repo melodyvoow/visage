@@ -417,13 +417,21 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     debugPrint('[Flow] 프롬프트: "$userPrompt"');
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
+    // 선택된 레이아웃 이미지 가져오기 (시각적 레퍼런스로 SVG 생성에 전달)
+    Uint8List? selectedLayoutImage;
+    if (layoutIndex < _layoutImages.length) {
+      selectedLayoutImage = _layoutImages[layoutIndex];
+      debugPrint('[Flow] 레이아웃 이미지 전달: ${selectedLayoutImage.length} bytes');
+    }
+
     try {
-      // SVG 1장 생성 + 업로드
+      // SVG 1장 생성 + 업로드 (레이아웃 이미지를 시각적 프롬프트로 포함)
       final result = await VisageSvgService.generateAndUpload(
         moodKeywords: userPrompt,
         designStyle: _selectedStyle ?? DesignStyle.softRound,
         userPrompt: _promptData?.text ?? '',
         layoutPrompt: layoutPrompt,
+        layoutImage: selectedLayoutImage,
         userId: uid,
         onState: (state) {
           debugPrint('[Flow] SVG 진행: $state');
