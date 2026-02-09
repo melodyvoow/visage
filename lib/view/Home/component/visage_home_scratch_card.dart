@@ -27,7 +27,9 @@ class _VisageHomeScratchCardState extends State<VisageHomeScratchCard>
   }
 
   Future<void> _loadSketchImage() async {
-    final ByteData data = await rootBundle.load('assets/image/main_sketch.jpeg');
+    final ByteData data = await rootBundle.load(
+      'assets/image/main_sketch.jpeg',
+    );
     final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
     final frame = await codec.getNextFrame();
     if (mounted) {
