@@ -538,7 +538,9 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     } catch (e) {
       debugPrint('[Desk] ❌ Desk 워크플로우 오류: $e');
       if (mounted) {
-        _showWarningDialog('An error occurred while creating the comp card: $e');
+        _showWarningDialog(
+          'An error occurred while creating the comp card: $e',
+        );
         _goToStep(CreationStep.layoutRecommend);
       }
     }
@@ -612,25 +614,33 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     List<SliderLayerUXThumbCardStore> initialLayers,
     String projectId,
   ) {
-    Navigator.pushAndRemoveUntil(
-      context,
+    // pushAndRemoveUntil 이후 이 위젯은 unmounted 되므로
+    // NavigatorState를 미리 캡처하여 콜백에서 사용
+    final navigator = Navigator.of(context, rootNavigator: true);
+
+    navigator.pushReplacement(
       MaterialPageRoute(
-        builder: (context) => NyxCanvasAiAgentShadowView(
+        builder: (_) => NyxCanvasAiAgentShadowView(
           databaseId: NyxConstants.databaseName,
           projectId: projectId,
           initialSlider: initialSlider,
           initialLayers: initialLayers,
-          onCanvasProject: _navigateToCanvasView,
+          onCanvasProject: (nyxProject) =>
+              _navigateToCanvasView(nyxProject, navigator),
         ),
         fullscreenDialog: true,
       ),
-      (route) => route.isFirst,
     );
   }
 
   /// Shadow 완료 후 Canvas View로 이동
+  ///
+  /// [navigator]는 _navigateToShadowView에서 미리 캡처한 NavigatorState.
+  /// 이 시점에서 VisageCreationFlowView는 이미 unmounted 상태이므로
+  /// this.context를 사용하지 않고 캡처된 navigator를 직접 사용.
   Future<void> _navigateToCanvasView(
     NyxProjectUXThumbCardStore nyxProject,
+    NavigatorState navigator,
   ) async {
     try {
       // 현재 로그인된 사용자 정보 조회
@@ -641,19 +651,17 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       }
 
       final member = await NyxMemberFirecatCrudController.getMember(uid);
-      if (member == null || !mounted) return;
+      if (member == null) return;
 
-      Navigator.pushAndRemoveUntil(
-        context,
+      navigator.push(
         MaterialPageRoute(
-          builder: (context) => NyxCanvasView(
+          builder: (_) => NyxCanvasView(
             projectUXThumbCardStore: nyxProject,
             playerUXThumbCardStore: member,
             databaseId: NyxConstants.databaseName,
             onStart: () {},
           ),
         ),
-        (route) => route.isFirst,
       );
     } catch (e) {
       debugPrint('[Desk] ❌ Canvas 이동 오류: $e');
