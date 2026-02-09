@@ -38,7 +38,7 @@ class _VisageLayoutRecommendStepState extends State<VisageLayoutRecommendStep> {
 
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720),
+        constraints: const BoxConstraints(maxWidth: 800),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
@@ -73,9 +73,9 @@ class _VisageLayoutRecommendStepState extends State<VisageLayoutRecommendStep> {
                   physics: const ClampingScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
-                    childAspectRatio: 16 / 10,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 16 / 9,
                   ),
                   itemCount: imageCount,
                   itemBuilder: (context, index) => _buildLayoutCard(index),
@@ -123,6 +123,7 @@ class _VisageLayoutRecommendStepState extends State<VisageLayoutRecommendStep> {
 
                   // Select
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: _selectedIndex != null
                         ? () => widget.onLayoutSelected(_selectedIndex!)
                         : null,

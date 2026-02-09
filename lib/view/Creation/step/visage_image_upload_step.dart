@@ -11,7 +11,8 @@ class VisageImageUploadStep extends StatefulWidget {
   final void Function(
     List<Uint8List> images,
     List<NyxUploadUXThumbCardStore> uploadResults,
-  ) onSubmit;
+  )
+  onSubmit;
 
   const VisageImageUploadStep({super.key, required this.onSubmit});
 
@@ -94,14 +95,18 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
 
         if (result != null) {
           uploadResults.add(result);
-          debugPrint('[VisageUpload] 업로드 성공: ${image.name} → ${result.uploadData?.ee_file_url}');
+          debugPrint(
+            '[VisageUpload] 업로드 성공: ${image.name} → ${result.uploadData?.ee_file_url}',
+          );
           setState(() => _uploadedCount = i + 1);
         } else {
           debugPrint('[VisageUpload] 업로드 실패: ${image.name}');
         }
       }
 
-      debugPrint('[VisageUpload] 전체 업로드 완료: ${uploadResults.length}/${_images.length}');
+      debugPrint(
+        '[VisageUpload] 전체 업로드 완료: ${uploadResults.length}/${_images.length}',
+      );
     } catch (e) {
       debugPrint('[VisageUpload] 업로드 오류: $e');
       if (mounted) {
@@ -134,10 +139,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
     }
 
     // 업로드 완료 후 이미지 + 업로드 결과를 함께 전달
-    widget.onSubmit(
-      _images.map((e) => e.bytes).toList(),
-      uploadResults,
-    );
+    widget.onSubmit(_images.map((e) => e.bytes).toList(), uploadResults);
   }
 
   @override
@@ -222,38 +224,46 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
 
               // Submit button
               if (!_isUploading)
-                GestureDetector(
-                  onTap: _images.isNotEmpty ? _uploadAndSubmit : null,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 56,
-                      vertical: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(28),
-                      color: _images.isNotEmpty
-                          ? const Color(0xFF15234A)
-                          : const Color(0xFF15234A).withOpacity(0.4),
-                      boxShadow: _images.isNotEmpty
-                          ? [
-                              BoxShadow(
-                                color: const Color(0xFF15234A).withOpacity(0.5),
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: Text(
-                      'MERGE',
-                      style: TextStyle(
+                MouseRegion(
+                  cursor: _images.isNotEmpty
+                      ? SystemMouseCursors.click
+                      : SystemMouseCursors.basic,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _images.isNotEmpty ? _uploadAndSubmit : null,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 56,
+                        vertical: 16,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(28),
                         color: _images.isNotEmpty
-                            ? Colors.white
-                            : Colors.white.withOpacity(0.4),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 2,
+                            ? const Color(0xFF15234A)
+                            : const Color(0xFF15234A).withOpacity(0.4),
+                        boxShadow: _images.isNotEmpty
+                            ? [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFF15234A,
+                                  ).withOpacity(0.5),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Text(
+                        'MERGE',
+                        style: TextStyle(
+                          color: _images.isNotEmpty
+                              ? Colors.white
+                              : Colors.white.withOpacity(0.4),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 2,
+                        ),
                       ),
                     ),
                   ),
@@ -308,16 +318,47 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
   }
 
   Widget _buildImageGrid() {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 180),
+      child: Wrap(
+        spacing: 14,
+        runSpacing: 14,
+        children: [
+          ..._images.asMap().entries.map(
+            (entry) => _buildImageThumbnail(entry.key, entry.value),
+          ),
+          _buildAddButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddButton() {
     return GestureDetector(
       onTap: _pickImages,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 180),
-        child: Wrap(
-          spacing: 14,
-          runSpacing: 14,
+      child: Container(
+        width: 140,
+        height: 140,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.15), width: 1.5),
+          color: Colors.white.withOpacity(0.03),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ..._images.asMap().entries.map(
-              (entry) => _buildImageThumbnail(entry.key, entry.value),
+            Icon(
+              Icons.add_rounded,
+              color: Colors.white.withOpacity(0.4),
+              size: 32,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Add',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.35),
+                fontSize: 12,
+              ),
             ),
           ],
         ),

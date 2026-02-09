@@ -121,6 +121,7 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
 
                   // Select button
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: _selectedIndex != null
                         ? () => widget.onImageSelected(_selectedIndex!)
                         : null,

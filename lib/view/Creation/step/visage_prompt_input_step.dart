@@ -367,6 +367,7 @@ class _VisagePromptInputStepState extends State<VisagePromptInputStep> {
   // --- Submit button ---
   Widget _buildSubmitButton() {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: _canSubmit ? _submit : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),

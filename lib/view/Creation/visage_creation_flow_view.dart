@@ -319,7 +319,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     _recommendAndGenerateLayouts(style);
   }
 
-  /// Gemini로 추구미에 맞는 레이아웃 3개를 추천받고, NanoBanana로 이미지를 생성합니다.
+  /// Gemini로 추구미에 맞는 레이아웃 4개를 추천받고, NanoBanana로 이미지를 생성합니다.
   Future<void> _recommendAndGenerateLayouts(DesignStyle style) async {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     debugPrint('[Flow] 레이아웃 추천 + 생성 시작');
@@ -955,98 +955,144 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     final steps = ['Create Moodboard', 'Image Merge', 'Layout', 'Complete'];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 48),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Top row: circles + connector lines
-          Row(
-            children: List.generate(steps.length * 2 - 1, (index) {
-              if (index.isOdd) {
-                // Connector line
-                final stepIndex = index ~/ 2;
-                final isCompleted = _indicatorStep > stepIndex;
-                return Expanded(
-                  child: Container(
-                    height: 1.5,
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    color: isCompleted
-                        ? const Color(0xFF15234A)
-                        : Colors.white.withOpacity(0.15),
-                  ),
-                );
-              } else {
-                // Step circle
-                final stepIndex = index ~/ 2;
-                final isActive = _indicatorStep == stepIndex;
-                final isCompleted = _indicatorStep > stepIndex;
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final totalWidth = constraints.maxWidth;
+          // 4 circles, 3 connectors: calculate spacing
+          const circleSize = 48.0;
+          const circleCount = 4;
+          final connectorWidth =
+              (totalWidth - circleSize * circleCount) / (circleCount - 1);
 
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: (isActive || isCompleted)
-                        ? const Color(0xFF15234A)
-                        : Colors.white.withOpacity(0.12),
-                    border: Border.all(
-                      color: (isActive || isCompleted)
-                          ? const Color(0xFF15234A)
-                          : Colors.white.withOpacity(0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: Center(
-                    child: isCompleted
-                        ? const Icon(
-                            Icons.check_rounded,
-                            color: Colors.white,
-                            size: 22,
-                          )
-                        : Text(
-                            '${stepIndex + 1}',
-                            style: TextStyle(
-                              color: isActive
-                                  ? Colors.white
-                                  : Colors.white.withOpacity(0.4),
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
-                );
-              }
-            }),
-          ),
-          const SizedBox(height: 8),
-          // Bottom row: labels only
-          Row(
-            children: List.generate(steps.length * 2 - 1, (index) {
-              if (index.isOdd) {
-                return const Expanded(child: SizedBox());
-              } else {
-                final stepIndex = index ~/ 2;
-                final isActive = _indicatorStep == stepIndex;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Top row: circles + connector lines
+              Row(
+                children: List.generate(steps.length * 2 - 1, (index) {
+                  if (index.isOdd) {
+                    final stepIndex = index ~/ 2;
+                    final isCompleted = _indicatorStep > stepIndex;
+                    return SizedBox(
+                      width: connectorWidth,
+                      child: Container(
+                        height: 1.5,
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        color: isCompleted
+                            ? const Color(0xFF15234A)
+                            : Colors.white.withOpacity(0.15),
+                      ),
+                    );
+                  } else {
+                    final stepIndex = index ~/ 2;
+                    final isActive = _indicatorStep == stepIndex;
+                    final isCompleted = _indicatorStep > stepIndex;
 
-                return SizedBox(
-                  width: 48,
-                  child: Text(
-                    steps[stepIndex],
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: isActive
-                          ? Colors.white.withOpacity(0.9)
-                          : Colors.white.withOpacity(0.4),
-                      fontSize: 14,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
-                );
-              }
-            }),
-          ),
-        ],
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: circleSize,
+                      height: circleSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: (isActive || isCompleted)
+                            ? const Color(0xFF15234A)
+                            : Colors.white.withOpacity(0.12),
+                        border: Border.all(
+                          color: (isActive || isCompleted)
+                              ? const Color(0xFF15234A)
+                              : Colors.white.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: isCompleted
+                            ? const Icon(
+                                Icons.check_rounded,
+                                color: Colors.white,
+                                size: 22,
+                              )
+                            : Text(
+                                '${stepIndex + 1}',
+                                style: TextStyle(
+                                  color: isActive
+                                      ? Colors.white
+                                      : Colors.white.withOpacity(0.4),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
+                    );
+                  }
+                }),
+              ),
+              const SizedBox(height: 8),
+              // Bottom row: labels with wider area
+              Row(
+                children: List.generate(steps.length, (stepIndex) {
+                  final isActive = _indicatorStep == stepIndex;
+
+                  if (stepIndex == 0) {
+                    // First label: circle width + half connector
+                    return SizedBox(
+                      width: circleSize + connectorWidth / 2,
+                      child: Text(
+                        steps[stepIndex],
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          color: isActive
+                              ? Colors.white.withOpacity(0.9)
+                              : Colors.white.withOpacity(0.4),
+                          fontSize: 14,
+                          fontWeight: isActive
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    );
+                  } else if (stepIndex == steps.length - 1) {
+                    // Last label: half connector + circle width
+                    return SizedBox(
+                      width: connectorWidth / 2 + circleSize,
+                      child: Text(
+                        steps[stepIndex],
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: isActive
+                              ? Colors.white.withOpacity(0.9)
+                              : Colors.white.withOpacity(0.4),
+                          fontSize: 14,
+                          fontWeight: isActive
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    );
+                  } else {
+                    // Middle labels: half connector + circle + half connector
+                    return SizedBox(
+                      width: connectorWidth + circleSize,
+                      child: Text(
+                        steps[stepIndex],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: isActive
+                              ? Colors.white.withOpacity(0.9)
+                              : Colors.white.withOpacity(0.4),
+                          fontSize: 14,
+                          fontWeight: isActive
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    );
+                  }
+                }),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

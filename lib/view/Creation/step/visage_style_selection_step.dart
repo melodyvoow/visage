@@ -184,6 +184,7 @@ class _VisageStyleSelectionStepState extends State<VisageStyleSelectionStep> {
 
               // Confirm button
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: _selected != null
                     ? () => widget.onStyleSelected(_selected!)
                     : null,
