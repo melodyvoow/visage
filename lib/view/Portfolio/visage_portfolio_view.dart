@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:nyx_kernel/nyx_kernel.dart';
-import 'package:nyx_kernel/Firecat/viewmodel/NyxVector/nyx_vector_ux_card.dart';
+import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/nyx_project_ux_card.dart';
 import 'package:visage/view/Creation/visage_creation_flow_view.dart';
 import 'package:visage/widget/glass_container.dart';
 
@@ -19,7 +19,7 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
   static const int _itemsPerPage = 20;
 
   final ScrollController _scrollController = ScrollController();
-  final List<NyxVectorUXThumbCardStore> _cards = [];
+  final List<NyxProjectUXThumbCardStore> _cards = [];
 
   bool _isLoading = true;
   bool _isLoadingMore = false;
@@ -68,17 +68,17 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
 
     try {
       final result =
-          await NyxVectorFirecatCrudController.getRecentVectorsWithPagination(
-            isVisible: true,
-            uid: uid,
+          await NyxProjectDatabaseFirecatCrudController.getProjectDatabasesByMemberRecentWithPagination(
+            memberId: uid,
+            database: "visage",
             limit: _itemsPerPage,
           );
 
       if (mounted) {
         setState(() {
-          _cards.addAll(result.items);
+          _cards.addAll(result.projects);
           _lastDoc = result.lastDocument;
-          _hasMore = result.items.length >= _itemsPerPage;
+          _hasMore = result.projects.length >= _itemsPerPage;
           _isLoading = false;
         });
         _fadeController.forward();
@@ -102,18 +102,18 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
 
     try {
       final result =
-          await NyxVectorFirecatCrudController.getRecentVectorsWithPagination(
-            isVisible: true,
-            uid: uid,
+          await NyxProjectDatabaseFirecatCrudController.getProjectDatabasesByMemberRecentWithPagination(
+            memberId: uid,
+            database: "visage",
             startAfter: _lastDoc,
             limit: _itemsPerPage,
           );
 
       if (mounted) {
         setState(() {
-          _cards.addAll(result.items);
-          if (result.items.isNotEmpty) _lastDoc = result.lastDocument;
-          _hasMore = result.items.length >= _itemsPerPage;
+          _cards.addAll(result.projects);
+          if (result.projects.isNotEmpty) _lastDoc = result.lastDocument;
+          _hasMore = result.projects.length >= _itemsPerPage;
           _isLoadingMore = false;
         });
       }
@@ -163,7 +163,11 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
 
     if (confirmed != true) return;
 
-    final success = await NyxVectorFirecatCrudController.deleteVector(docId);
+    final success =
+        await NyxProjectDatabaseFirecatCrudController.deleteProjectDatabase(
+          docId,
+          database: "visage",
+        );
     if (success && mounted) {
       setState(() => _cards.removeAt(index));
       ScaffoldMessenger.of(context).showSnackBar(
@@ -504,7 +508,7 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
 
   void _onCardTap(int index) {
     final card = _cards[index];
-    final data = card.vectorData;
+    final data = card.projectData;
     if (data == null) return;
 
     showGeneralDialog(
@@ -634,7 +638,7 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
 // ═══════════════════════════════════════════════════════════════
 
 class _PortfolioCardItem extends StatelessWidget {
-  final NyxVectorUXThumbCardStore card;
+  final NyxProjectUXThumbCardStore card;
   final int index;
   final bool isHovered;
   final ValueChanged<bool> onHover;
@@ -653,10 +657,10 @@ class _PortfolioCardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = card.vectorData;
-    final thumbUrl = data?.ee_vector_thumbnail_url ?? '';
-    final prompt = data?.ee_input_prompt ?? '';
-    final designStyle = data?.ee_design_style ?? '';
+    final data = card.projectData;
+    final thumbUrl = data?.ee_image_thumb_url ?? '';
+    final prompt = data?.ee_name ?? '';
+    final designStyle = data?.ee_agent_type ?? '';
     final createdAt = data?.sys_reg_date;
     final dateStr = createdAt != null
         ? '${createdAt.year}.${createdAt.month.toString().padLeft(2, '0')}.${createdAt.day.toString().padLeft(2, '0')}'
@@ -879,18 +883,18 @@ class _FallbackThumb extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════
 
 class _DetailDialog extends StatelessWidget {
-  final NyxVectorStore data;
+  final NyxProjectStore data;
   final String docId;
 
   const _DetailDialog({required this.data, required this.docId});
 
   @override
   Widget build(BuildContext context) {
-    final thumbUrl = data.ee_vector_thumbnail_url;
-    final prompt = data.ee_input_prompt;
-    final style = data.ee_design_style;
+    final thumbUrl = data.ee_image_thumb_url ?? '';
+    final prompt = data.ee_name;
+    final style = data.ee_agent_type ?? '';
     final date = data.sys_reg_date;
-    final ratio = data.ee_ratio;
+    final ratio = data.ee_agent_ratio ?? '';
 
     return Center(
       child: ConstrainedBox(
