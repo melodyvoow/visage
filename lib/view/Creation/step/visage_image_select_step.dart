@@ -36,7 +36,7 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
 
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 620),
+        constraints: const BoxConstraints(maxWidth: 520),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
