@@ -194,7 +194,7 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
       setState(() => _cards.removeAt(index));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('컴카드가 삭제되었습니다'),
+          content: const Text('Comp card has been deleted'),
           backgroundColor: Colors.white.withOpacity(0.15),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -305,7 +305,7 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
               ),
               const SizedBox(height: 2),
               Text(
-                _isLoading ? '불러오는 중...' : '${_cards.length}개의 컴카드',
+                _isLoading ? 'Loading...' : '${_cards.length} Comp Cards',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.4),
                   fontSize: 13,
@@ -401,7 +401,7 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
           ),
           const SizedBox(height: 20),
           Text(
-            '포트폴리오를 불러오는 중...',
+            'Loading portfolio...',
             style: TextStyle(
               color: Colors.white.withOpacity(0.4),
               fontSize: 14,
@@ -446,7 +446,7 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
             ),
             const SizedBox(height: 28),
             Text(
-              '아직 생성된 컴카드가 없어요',
+              'No comp cards yet',
               style: TextStyle(
                 color: Colors.white.withOpacity(0.65),
                 fontSize: 18,
@@ -455,7 +455,7 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
             ),
             const SizedBox(height: 8),
             Text(
-              '첫 번째 컴카드를 만들어보세요!',
+              'Create your first comp card!',
               style: TextStyle(
                 color: Colors.white.withOpacity(0.3),
                 fontSize: 14,
@@ -497,7 +497,7 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '컴카드 만들기',
+                      'Create Comp Card',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.9),
                         fontSize: 15,
@@ -553,7 +553,7 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
               ),
               const SizedBox(height: 16),
               const Text(
-                '이 컴카드를 삭제할까요?',
+                'Delete this comp card?',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -563,7 +563,7 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
               ),
               const SizedBox(height: 8),
               Text(
-                '삭제된 컴카드는 복구할 수 없습니다',
+                'Deleted comp cards cannot be recovered',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.4),
                   fontSize: 13,
@@ -586,7 +586,7 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
                           ),
                         ),
                         child: const Text(
-                          '취소',
+                          'Cancel',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: Colors.white,
@@ -612,7 +612,7 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
                           ),
                         ),
                         child: const Text(
-                          '삭제',
+                          'Delete',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: Colors.redAccent,

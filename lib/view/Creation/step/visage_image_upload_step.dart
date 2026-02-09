@@ -54,7 +54,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('로그인이 필요합니다.'),
+            content: Text('Login is required.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -65,7 +65,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
     setState(() {
       _isUploading = true;
       _uploadedCount = 0;
-      _uploadProgress = '업로드 준비 중...';
+      _uploadProgress = 'Preparing upload...';
     });
 
     final List<NyxUploadUXThumbCardStore> uploadResults = [];
@@ -107,7 +107,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('업로드 중 오류가 발생했습니다: $e'),
+            content: Text('An error occurred during upload: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -125,7 +125,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('업로드에 실패했습니다. 다시 시도해주세요.'),
+            content: Text('Upload failed. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -152,7 +152,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
             children: [
               // Title
               Text(
-                '합성할 이미지를 업로드해주세요',
+                'Upload Images for Compositing',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 28,
@@ -161,7 +161,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
               ),
               const SizedBox(height: 8),
               Text(
-                '컴카드에 합성하고 싶은 사진을 올려주세요 (여러 장 가능)',
+                'Upload photos to composite into your comp card (multiple allowed)',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.4),
                   fontSize: 14,
@@ -207,7 +207,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '$_uploadedCount / ${_images.length} 완료',
+                        '$_uploadedCount / ${_images.length} completed',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.4),
                           fontSize: 12,
@@ -249,7 +249,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
                           : null,
                     ),
                     child: Text(
-                      '합성하기',
+                      'Composite',
                       style: TextStyle(
                         color: _images.isNotEmpty
                             ? Colors.white
@@ -297,7 +297,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
               ),
               const SizedBox(height: 16),
               Text(
-                '클릭하여 이미지를 업로드하세요',
+                'Click to upload images',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.5),
                   fontSize: 15,
@@ -306,7 +306,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
               ),
               const SizedBox(height: 6),
               Text(
-                'JPG, PNG, WEBP · 여러 장 선택 가능',
+                'JPG, PNG, WEBP · Multiple selection allowed',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.25),
                   fontSize: 12,
@@ -419,7 +419,7 @@ class _VisageImageUploadStepState extends State<VisageImageUploadStep> {
             ),
             const SizedBox(height: 4),
             Text(
-              '추가',
+              'Add',
               style: TextStyle(
                 color: Colors.white.withOpacity(0.35),
                 fontSize: 11,

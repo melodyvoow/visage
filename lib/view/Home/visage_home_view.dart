@@ -189,7 +189,7 @@ class _VisageHomeViewState extends State<VisageHomeView> {
               elevation: 10,
             ),
             child: const Text(
-              '나만의 컴카드 만들기',
+              'Create My Comp Card',
               style: TextStyle(
                 fontSize: _btnFontSize,
                 fontWeight: FontWeight.w600,
@@ -301,7 +301,7 @@ class _VisageHomeViewState extends State<VisageHomeView> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        '로그인 중...',
+                        'Signing in...',
                         style: TextStyle(
                           color: Color(0xFF1F1F1F),
                           fontSize: _btnFontSize,

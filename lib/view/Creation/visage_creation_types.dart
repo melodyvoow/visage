@@ -21,15 +21,15 @@ enum DesignStyle {
 
 extension DesignStyleExtension on DesignStyle {
   String get label => switch (this) {
-    DesignStyle.softRound => '소프트 라운드',
-    DesignStyle.sharpGrid => '샤프 그리드',
-    DesignStyle.editorial => '에디토리얼',
+    DesignStyle.softRound => 'Soft Round',
+    DesignStyle.sharpGrid => 'Sharp Grid',
+    DesignStyle.editorial => 'Editorial',
   };
 
   String get description => switch (this) {
-    DesignStyle.softRound => '카드 UI, 그림자, 친근한 테크 스타일',
-    DesignStyle.sharpGrid => '라인 구분, 고대비, 전문적인 기업 스타일',
-    DesignStyle.editorial => '콜라주, 마스킹, 감성적인 패션 스타일',
+    DesignStyle.softRound => 'Card UI, shadows, friendly tech style',
+    DesignStyle.sharpGrid => 'Line division, high contrast, professional corporate style',
+    DesignStyle.editorial => 'Collage, masking, emotional fashion style',
   };
 }
 

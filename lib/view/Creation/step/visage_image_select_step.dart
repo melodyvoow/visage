@@ -44,7 +44,7 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
             children: [
               // Title
               Text(
-                '추구미 이미지를 선택해주세요',
+                'Select an Aesthetic Image',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 28,
@@ -54,8 +54,8 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
               const SizedBox(height: 8),
               Text(
                 widget.images.isEmpty
-                    ? '이미지 생성에 실패했습니다. 다시 시도해주세요.'
-                    : 'AI가 생성한 이미지 중 마음에 드는 것을 선택하세요',
+                    ? 'Image generation failed. Please try again.'
+                    : 'Select the image you like from AI-generated options',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.4),
                   fontSize: 14,
@@ -151,7 +151,7 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
                             : null,
                       ),
                       child: Text(
-                        '이 이미지로 진행',
+                        'Proceed with this image',
                         style: TextStyle(
                           color: _selectedIndex != null
                               ? Colors.white
@@ -238,7 +238,7 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '생성 실패',
+                            'Generation failed',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.6),
                               fontSize: 13,
