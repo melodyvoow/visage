@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -22,6 +23,7 @@ class VisageSvgService {
 
   /// SVG 1장 생성 + 이미지 업로드
   ///
+  /// [layoutImage]가 제공되면 Gemini에 시각적 레퍼런스로 함께 전달됩니다.
   /// 반환: NyxUploadUXThumbCardStore (업로드된 이미지 카드)
   static Future<NyxUploadUXThumbCardStore?> generateAndUpload({
     required String moodKeywords,
@@ -29,6 +31,7 @@ class VisageSvgService {
     required String userPrompt,
     required String layoutPrompt,
     required String userId,
+    Uint8List? layoutImage,
     void Function(String state)? onState,
   }) async {
     try {
@@ -46,13 +49,17 @@ class VisageSvgService {
       debugPrint('[SVG] 생성 시작');
       debugPrint('[SVG] 스타일: $layoutName');
       debugPrint('[SVG] 무드: $moodKeywords');
+      debugPrint('[SVG] 레이아웃 이미지: ${layoutImage != null ? "${layoutImage.length} bytes" : "없음"}');
       debugPrint('[SVG] 프롬프트 길이: ${combinedPrompt.length}자');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      // 2. Gemini 2.0 Flash로 SVG 생성
+      // 2. Gemini로 SVG 생성 (레이아웃 이미지를 시각적 레퍼런스로 포함)
       onState?.call('AI가 SVG 디자인을 생성하고 있어요...');
 
-      final svgCode = await _generateSvgWithGemini(combinedPrompt);
+      final svgCode = await _generateSvgWithGemini(
+        combinedPrompt,
+        layoutImage: layoutImage,
+      );
 
       if (svgCode == null || svgCode.isEmpty) {
         debugPrint('[SVG] SVG 코드 비어있음');
@@ -111,22 +118,44 @@ class VisageSvgService {
   // ── Private Helpers ──
 
   /// Gemini로 SVG 코드 직접 생성
-  static Future<String?> _generateSvgWithGemini(String prompt) async {
+  ///
+  /// [layoutImage]가 제공되면 텍스트 프롬프트와 함께 multimodal 입력으로 전달하여
+  /// 레이아웃 이미지의 시각적 구조를 SVG에 반영합니다.
+  static Future<String?> _generateSvgWithGemini(
+    String prompt, {
+    Uint8List? layoutImage,
+  }) async {
     try {
       final url = Uri.parse('$_baseUrl/$_model:generateContent?key=$_apiKey');
 
+      // parts 구성: 레이아웃 이미지가 있으면 시각적 레퍼런스로 포함
+      final List<Map<String, dynamic>> parts = [];
+
+      if (layoutImage != null) {
+        parts.add({
+          'inlineData': {
+            'mimeType': 'image/png',
+            'data': base64Encode(layoutImage),
+          },
+        });
+        parts.add({
+          'text':
+              '[레이아웃 레퍼런스] 위 이미지는 선택된 레이아웃 디자인입니다. '
+              '이 레이아웃의 시각적 구조, 요소 배치, 비율, 여백을 정확히 반영하여 SVG를 생성하세요.\n\n'
+              '$prompt',
+        });
+      } else {
+        parts.add({'text': prompt});
+      }
+
       final body = {
         'contents': [
-          {
-            'parts': [
-              {'text': prompt},
-            ],
-          },
+          {'parts': parts},
         ],
         'generationConfig': {'temperature': 0.7, 'maxOutputTokens': 65536},
       };
 
-      debugPrint('[SVG/Gemini] API 호출 시작 (prompt: ${prompt.length}자)');
+      debugPrint('[SVG/Gemini] API 호출 시작 (prompt: ${prompt.length}자, 이미지: ${layoutImage != null})');
 
       final response = await http.post(
         url,
@@ -150,14 +179,14 @@ class VisageSvgService {
       }
 
       final content = candidates.first['content'] as Map<String, dynamic>?;
-      final parts = content?['parts'] as List<dynamic>?;
+      final responseParts = content?['parts'] as List<dynamic>?;
 
-      if (parts == null || parts.isEmpty) {
+      if (responseParts == null || responseParts.isEmpty) {
         debugPrint('[SVG/Gemini] 응답에 parts 없음');
         return null;
       }
 
-      String text = (parts.first['text'] as String).trim();
+      String text = (responseParts.first['text'] as String).trim();
       debugPrint('[SVG/Gemini] 응답 길이: ${text.length}자');
 
       // 마크다운 코드 블록에서 SVG 추출
