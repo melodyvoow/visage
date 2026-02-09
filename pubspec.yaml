@@ -20,6 +20,7 @@ dependencies:
   nyx_kernel:
     path: ../nyx_kernel
   file_picker: ^10.3.10
+  google_fonts: ^8.0.1
 
 dev_dependencies:
   flutter_test:

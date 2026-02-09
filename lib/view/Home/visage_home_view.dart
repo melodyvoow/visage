@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:nyx_kernel/Firecat/viewmodel/NyxMember/nyx_member_firecat_auth_controller.dart';
 import 'package:visage/view/Creation/visage_creation_flow_view.dart';
+import 'package:visage/view/Portfolio/visage_portfolio_view.dart';
 import 'component/visage_home_scratch_card.dart';
 
 class VisageHomeView extends StatefulWidget {
@@ -71,31 +73,51 @@ class _VisageHomeViewState extends State<VisageHomeView> {
     );
   }
 
+  void _navigateToPortfolio() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const VisagePortfolioView(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            ),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.only(top: 12, bottom: 12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // 타이틀
-            const Text(
-              'Your Color, Your Story',
-              style: TextStyle(
+            Text(
+              'CREATE YOUR COLOR & YOUR STORY',
+              style: GoogleFonts.alata(
                 color: Colors.white,
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
+                fontSize: 42,
+                fontWeight: FontWeight.w400,
                 letterSpacing: -1,
               ),
             ),
 
-            const SizedBox(height: 25),
+            const SizedBox(height: 16),
 
             // 스크래치 카드 영역 (화면의 85% 크기)
             const VisageHomeScratchCard(),
 
-            const SizedBox(height: 25),
+            const SizedBox(height: 18),
 
             // 로그인 상태에 따라 버튼 전환
             AnimatedSwitcher(
@@ -104,21 +126,22 @@ class _VisageHomeViewState extends State<VisageHomeView> {
                 return FadeTransition(
                   opacity: animation,
                   child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, 0.15),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeOutCubic,
-                      ),
-                    ),
+                    position:
+                        Tween<Offset>(
+                          begin: const Offset(0, 0.15),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.easeOutCubic,
+                          ),
+                        ),
                     child: child,
                   ),
                 );
               },
               child: _isLoggedIn
-                  ? _buildCreateButton()
+                  ? _buildLoggedInButtons()
                   : _buildGoogleLoginButton(),
             ),
           ],
@@ -127,27 +150,87 @@ class _VisageHomeViewState extends State<VisageHomeView> {
     );
   }
 
-  /// 컴카드 생성하러 가기 버튼
-  Widget _buildCreateButton() {
-    return ElevatedButton(
-      key: const ValueKey('createButton'),
-      onPressed: _navigateToCreation,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        padding: const EdgeInsets.symmetric(
-          horizontal: 48,
-          vertical: 20,
+  // ─── 공통 버튼 규격 ───
+  static const double _btnHeight = 56;
+  static const double _btnRadius = 30;
+  static const double _btnFontSize = 15;
+  static const EdgeInsets _btnPadding = EdgeInsets.symmetric(
+    horizontal: 32,
+    vertical: 0,
+  );
+
+  /// 로그인 후 버튼 (컴카드 만들기 + 포트폴리오)
+  Widget _buildLoggedInButtons() {
+    return Row(
+      key: const ValueKey('loggedInButtons'),
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // 컴카드 만들기 버튼
+        SizedBox(
+          height: _btnHeight,
+          child: ElevatedButton(
+            onPressed: _navigateToCreation,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              padding: _btnPadding,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_btnRadius),
+              ),
+              elevation: 10,
+            ),
+            child: const Text(
+              '나만의 컴카드 만들기',
+              style: TextStyle(
+                fontSize: _btnFontSize,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
+        const SizedBox(width: 16),
+        // 포트폴리오 버튼
+        SizedBox(
+          height: _btnHeight,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(_btnRadius),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF9B6FD6).withOpacity(0.15),
+                  blurRadius: 16,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: ElevatedButton.icon(
+              onPressed: _navigateToPortfolio,
+              icon: const Icon(Icons.collections_bookmark_rounded, size: 18),
+              label: const Text(
+                'PORTFOLIO',
+                style: TextStyle(
+                  fontSize: _btnFontSize,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white.withOpacity(0.08),
+                foregroundColor: Colors.white,
+                padding: _btnPadding,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(_btnRadius),
+                  side: BorderSide(
+                    color: const Color(0xFF9B6FD6).withOpacity(0.4),
+                    width: 1,
+                  ),
+                ),
+                elevation: 0,
+              ),
+            ),
+          ),
         ),
-        elevation: 10,
-      ),
-      child: const Text(
-        '나만의 컴카드 만들기',
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      ),
+      ],
     );
   }
 
@@ -159,49 +242,53 @@ class _VisageHomeViewState extends State<VisageHomeView> {
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 200),
         opacity: _isLoginInProgress ? 0.6 : 1.0,
-        child: _isLoginInProgress
-            ? Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.white.withOpacity(0.15),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '로그인 중...',
-                      style: TextStyle(
-                        color: Color(0xFF1F1F1F),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: -0.2,
+        child: SizedBox(
+          height: _btnHeight,
+          child: _isLoginInProgress
+              ? Container(
+                  padding: _btnPadding,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(_btnRadius),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.15),
+                        blurRadius: 20,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
-                    SizedBox(width: 12),
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color(0xFF1F1F1F),
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '로그인 중...',
+                        style: TextStyle(
+                          color: Color(0xFF1F1F1F),
+                          fontSize: _btnFontSize,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.2,
+                        ),
                       ),
-                    ),
-                  ],
+                      SizedBox(width: 12),
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF1F1F1F),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Image.asset(
+                  'assets/image/google_login.png',
+                  height: _btnHeight,
+                  fit: BoxFit.contain,
                 ),
-              )
-            : Image.asset(
-                'assets/image/google_login.png',
-                height: 48,
-              ),
+        ),
       ),
     );
   }
