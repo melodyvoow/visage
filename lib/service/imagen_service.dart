@@ -13,6 +13,7 @@ class ImagenService {
   static Future<Uint8List?> generateBackground(String userPrompt) async {
     try {
       final bgPrompt = _buildBackgroundPrompt(userPrompt);
+      debugPrint('[Imagen] 배경 생성 프롬프트: "$bgPrompt"');
       final url = Uri.parse('$_baseUrl/$_model:predict');
 
       final response = await http.post(
@@ -38,28 +39,38 @@ class ImagenService {
           final base64String = imageData['bytesBase64Encoded'] as String?;
 
           if (base64String != null) {
+            debugPrint(
+              '[Imagen] 배경 이미지 생성 성공 (${base64String.length} bytes base64)',
+            );
             return base64Decode(base64String);
           }
         }
+        debugPrint('[Imagen] 배경 이미지 생성 실패: predictions가 비어있음');
       } else {
         debugPrint(
-          'Imagen API error [${response.statusCode}]: ${response.body}',
+          '[Imagen] 배경 API 오류 [${response.statusCode}]: ${response.body}',
         );
       }
 
       return null;
     } catch (e) {
-      debugPrint('Background generation failed: $e');
+      debugPrint('[Imagen] 배경 생성 예외: $e');
       return null;
     }
   }
 
-  /// 추구미 프롬프트 기반으로 이미지 4개를 생성합니다.
+  /// Gemini가 분석한 프롬프트로 추구미 이미지 4개를 생성합니다.
+  /// [analyzedPrompt]는 GeminiService.analyzePromptData()의 결과입니다.
   static Future<List<Uint8List>> generateAestheticImages(
-    String userPrompt,
+    String analyzedPrompt,
   ) async {
     try {
       final url = Uri.parse('$_baseUrl/$_model:predict');
+      final prompt =
+          '$analyzedPrompt. Artistic, visually striking, high quality '
+          'fashion/mood board comp card style. No text overlays.';
+
+      debugPrint('[Imagen] 추구미 이미지 생성 프롬프트: "$prompt"');
 
       final response = await http.post(
         url,
@@ -69,7 +80,7 @@ class ImagenService {
         },
         body: jsonEncode({
           'instances': [
-            {'prompt': _buildAestheticPrompt(userPrompt)},
+            {'prompt': prompt},
           ],
           'parameters': {'sampleCount': 4, 'aspectRatio': '1:1'},
         }),
@@ -80,6 +91,7 @@ class ImagenService {
         final predictions = data['predictions'] as List<dynamic>?;
 
         if (predictions != null) {
+          debugPrint('[Imagen] 추구미 이미지 ${predictions.length}개 생성 성공');
           return predictions
               .map(
                 (p) => base64Decode(
@@ -88,31 +100,24 @@ class ImagenService {
               )
               .toList();
         }
+        debugPrint('[Imagen] 추구미 이미지 생성 실패: predictions가 비어있음');
       } else {
         debugPrint(
-          'Imagen API error [${response.statusCode}]: ${response.body}',
+          '[Imagen] 추구미 API 오류 [${response.statusCode}]: ${response.body}',
         );
       }
 
       return [];
     } catch (e) {
-      debugPrint('Aesthetic image generation failed: $e');
+      debugPrint('[Imagen] 추구미 이미지 생성 예외: $e');
       return [];
     }
   }
 
-  /// 추구미 이미지 생성용 프롬프트
-  static String _buildAestheticPrompt(String userPrompt) {
-    return 'Create a beautiful aesthetic comp card image that visually '
-        'represents the style and mood of: "$userPrompt". '
-        'Artistic, visually striking, high quality fashion/mood board style. '
-        'No text overlays.';
-  }
-
-  /// 사용자 프롬프트를 배경 이미지용 프롬프트로 변환합니다.
-  static String _buildBackgroundPrompt(String userPrompt) {
-    return 'Create an abstract atmospheric background that captures '
-        'the mood and essence of: "$userPrompt". '
+  /// 분석된 프롬프트를 배경 이미지용으로 변환합니다.
+  static String _buildBackgroundPrompt(String analyzedPrompt) {
+    return 'Create an abstract atmospheric background inspired by: '
+        '$analyzedPrompt. '
         'Soft, ethereal, dreamy quality with beautiful color gradients. '
         'No text, no people, no faces. '
         'Blurred artistic background suitable as wallpaper. '

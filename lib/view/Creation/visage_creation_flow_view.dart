@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:visage/service/gemini_service.dart';
 import 'package:visage/service/imagen_service.dart';
 import 'package:visage/view/Creation/visage_creation_types.dart';
 import 'package:visage/widget/glass_container.dart';
@@ -22,6 +23,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
 
   // Flow data
   PromptData? _promptData;
+  String? _analyzedPrompt; // Gemini 분석 결과
   List<Uint8List> _generatedImages = [];
 
   // Dynamic background
@@ -48,41 +50,210 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
   void _onPromptSubmitted(PromptData data) {
     _promptData = data;
 
-    // 배경 이미지 생성을 병렬로 시작
-    _generateBackground(data);
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    debugPrint('[Flow] 프롬프트 제출됨');
+    debugPrint('[Flow] 텍스트: "${data.text}"');
+    debugPrint('[Flow] 첨부 파일: ${data.files.length}개');
+    for (final f in data.files) {
+      debugPrint('[Flow]   - ${f.name} (${f.type.name}, ${f.bytes.length} bytes)');
+    }
+    debugPrint('[Flow] 이미지 포함 여부: ${data.hasImage}');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
     if (data.hasImage) {
-      // Has image in attachments → go directly to upload step
-      _goToStep(CreationStep.imageUpload);
+      // 이미지 첨부 → 사용자에게 선택권 부여
+      _showImageChoiceDialog();
     } else {
-      // No image → generate aesthetic images
+      // 이미지 없음 → Gemini 분석 후 이미지 생성
       _goToStep(CreationStep.imageGeneration);
-      _generateAestheticImages();
+      _analyzeAndGenerate();
     }
   }
 
-  /// 프롬프트 기반 배경 이미지 생성 (병렬 실행)
-  Future<void> _generateBackground(PromptData data) async {
-    final prompt = data.text.isNotEmpty ? data.text : '아름다운 추상적인 배경';
+  /// 이미지 첨부 시 선택 다이얼로그
+  void _showImageChoiceDialog() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'choice',
+      barrierColor: Colors.black.withOpacity(0.5),
+      transitionDuration: const Duration(milliseconds: 300),
+      transitionBuilder: (context, animation, _, child) {
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.9, end: 1.0).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            ),
+            child: child,
+          ),
+        );
+      },
+      pageBuilder: (context, _, __) => Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: GlassContainer(
+              borderRadius: 28,
+              blur: 40,
+              opacity: 0.18,
+              enableShadow: true,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.auto_awesome_rounded,
+                    color: Colors.white.withOpacity(0.8),
+                    size: 40,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '이미지가 첨부되었어요',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.none,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '첨부된 이미지로 바로 진행하거나,\nAI가 추가 추구미 이미지를 생성할 수 있어요',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.5),
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
+                      decoration: TextDecoration.none,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  // 바로 진행 버튼
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      _proceedDirectly();
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF7B2FBE).withOpacity(0.3),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: const Text(
+                        '이 이미지로 바로 진행',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // AI 추가 생성 버튼
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      _goToStep(CreationStep.imageGeneration);
+                      _analyzeAndGenerate();
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                        ),
+                        color: Colors.white.withOpacity(0.06),
+                      ),
+                      child: Text(
+                        'AI로 추구미 이미지 추가 생성',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-    final bgImage = await ImagenService.generateBackground(prompt);
+  /// 이미지로 바로 진행 (배경 생성만 병렬 실행)
+  void _proceedDirectly() {
+    _generateBackgroundWithAnalysis();
+    _goToStep(CreationStep.imageUpload);
+  }
 
+  /// Gemini 분석 → Imagen 이미지 생성 + 배경 생성
+  Future<void> _analyzeAndGenerate() async {
+    // 1. Gemini로 프롬프트 분석
+    debugPrint('[Flow] Gemini 분석 시작...');
+    final analyzed = await GeminiService.analyzePromptData(_promptData!);
+
+    if (!mounted) return;
+    _analyzedPrompt = analyzed;
+    debugPrint('[Flow] Gemini 분석 완료 → Imagen 호출 시작');
+    debugPrint('[Flow] 분석된 프롬프트: "$analyzed"');
+
+    // 2. 병렬로 추구미 이미지 + 배경 생성
+    final results = await Future.wait([
+      ImagenService.generateAestheticImages(analyzed),
+      ImagenService.generateBackground(analyzed),
+    ]);
+
+    if (mounted) {
+      final images = results[0] as List<Uint8List>;
+      final bg = results[1] as Uint8List?;
+
+      debugPrint('[Flow] Imagen 결과: 추구미 이미지 ${images.length}개, 배경 ${bg != null ? "성공" : "실패"}');
+
+      setState(() {
+        _generatedImages = images;
+        if (bg != null) _generatedBackground = bg;
+      });
+      _goToStep(CreationStep.imageSelection);
+    }
+  }
+
+  /// 배경만 Gemini 분석 후 생성 (바로 진행 시)
+  Future<void> _generateBackgroundWithAnalysis() async {
+    debugPrint('[Flow] 바로 진행 모드 → 배경만 생성');
+    final analyzed = await GeminiService.analyzePromptData(_promptData!);
+    if (!mounted) return;
+    _analyzedPrompt = analyzed;
+    debugPrint('[Flow] 배경용 분석 프롬프트: "$analyzed"');
+
+    final bgImage = await ImagenService.generateBackground(analyzed);
     if (mounted && bgImage != null) {
+      debugPrint('[Flow] 배경 이미지 생성 완료');
       setState(() {
         _generatedBackground = bgImage;
       });
-    }
-  }
-
-  Future<void> _generateAestheticImages() async {
-    final prompt = _promptData?.text ?? '';
-    final images = await ImagenService.generateAestheticImages(prompt);
-
-    if (mounted) {
-      setState(() {
-        _generatedImages = images;
-      });
-      _goToStep(CreationStep.imageSelection);
     }
   }
 
@@ -92,7 +263,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
 
   void _onRegenerateImages() {
     _goToStep(CreationStep.imageGeneration);
-    _generateAestheticImages();
+    _analyzeAndGenerate();
   }
 
   void _onCompositeImagesUploaded(List<Uint8List> images) {
@@ -112,6 +283,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       _currentStep = CreationStep.promptInput;
       _isForward = false;
       _promptData = null;
+      _analyzedPrompt = null;
       _generatedImages = [];
       _generatedBackground = null;
     });
