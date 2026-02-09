@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/foundation.dart';
 
 /// Non-web 플랫폼 스텁 — 브라우저 Canvas가 없으므로 null 반환
