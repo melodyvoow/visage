@@ -110,15 +110,14 @@ class ImagenService {
     }
   }
 
-  /// 사용자 프롬프트를 기반으로 다양한 컨셉을 유도하는 마스터 프롬프트
+  /// 컬러/무드에 집중한 추구미 마스터 프롬프트
   static String _buildMasterPrompt(String userPrompt) {
-    return 'Create a unique and visually diverse artistic image '
-        'inspired by the aesthetic of: "$userPrompt". '
-        'Each image should explore a completely different creative direction — '
-        'ranging from mood board collage, abstract art, minimalist design, '
-        'cinematic photography, fine art, to experimental mixed media. '
-        'High quality, visually striking, emotionally evocative. '
-        'No text overlays.';
+    return 'Create a beautiful aesthetic image that purely expresses '
+        'the color palette and mood of: "$userPrompt". '
+        'Focus on rich colors, tones, textures, lighting, and atmosphere. '
+        'Each image should explore a different color and mood interpretation. '
+        'No layout, no composition structure, no text overlays. '
+        'Pure visual mood and color expression only.';
   }
 
   /// 분석된 프롬프트를 배경 이미지용으로 변환합니다.

@@ -9,13 +9,14 @@ class GeminiService {
   static const String _baseUrl =
       'https://generativelanguage.googleapis.com/v1beta/models';
 
-  /// PDF에서 컬러/무드 키워드를 추출하여
-  /// 사용자 텍스트와 결합한 프롬프트를 반환합니다.
-  /// PDF가 없으면 사용자 텍스트를 그대로 반환합니다.
-  static Future<String> extractPdfKeywords(PromptData data) async {
-    // PDF가 없으면 사용자 텍스트 그대로 반환 (Gemini 호출 안 함)
-    if (!data.hasPdf) {
-      debugPrint('[Gemini] PDF 없음 → 사용자 텍스트 그대로 사용');
+  /// 사용자 입력(텍스트/이미지/PDF)에서 컬러/무드 키워드를 추출합니다.
+  /// 첨부 파일(이미지, PDF)이 없으면 사용자 텍스트를 그대로 반환합니다.
+  static Future<String> extractColorMood(PromptData data) async {
+    final hasFiles = data.hasImage || data.hasPdf;
+
+    // 첨부 파일 없으면 텍스트 그대로 반환 (Gemini 호출 안 함)
+    if (!hasFiles) {
+      debugPrint('[Gemini] 첨부 파일 없음 → 사용자 텍스트 그대로 사용');
       return data.text.trim().isNotEmpty
           ? data.text.trim()
           : 'beautiful aesthetic mood board';
@@ -26,7 +27,7 @@ class GeminiService {
 
       final parts = <Map<String, dynamic>>[];
 
-      // 시스템 지시: PDF에서 컬러/무드만 추출
+      // 시스템 지시
       parts.add({'text': _systemPrompt});
 
       // 사용자 텍스트
@@ -35,18 +36,33 @@ class GeminiService {
         debugPrint('[Gemini] 텍스트 입력: "${data.text.trim()}"');
       }
 
-      // PDF 파일만 첨부
-      final pdfFiles = data.files
-          .where((f) => f.type == AttachedFileType.pdf)
-          .toList();
-      debugPrint('[Gemini] PDF 파일 ${pdfFiles.length}개 분석 시작');
+      // 이미지 파일 첨부
+      final imageFiles =
+          data.files.where((f) => f.type == AttachedFileType.image).toList();
+      if (imageFiles.isNotEmpty) {
+        debugPrint('[Gemini] 이미지 ${imageFiles.length}장 분석');
+        for (final file in imageFiles) {
+          final base64Data = base64Encode(file.bytes);
+          final mimeType = _guessMimeType(file.name);
+          parts.add({
+            'inlineData': {'mimeType': mimeType, 'data': base64Data},
+          });
+          parts.add({'text': '이미지 파일: ${file.name}'});
+        }
+      }
 
-      for (final file in pdfFiles) {
-        final base64Data = base64Encode(file.bytes);
-        parts.add({
-          'inlineData': {'mimeType': 'application/pdf', 'data': base64Data},
-        });
-        parts.add({'text': 'PDF 파일: ${file.name}'});
+      // PDF 파일 첨부
+      final pdfFiles =
+          data.files.where((f) => f.type == AttachedFileType.pdf).toList();
+      if (pdfFiles.isNotEmpty) {
+        debugPrint('[Gemini] PDF ${pdfFiles.length}개 분석');
+        for (final file in pdfFiles) {
+          final base64Data = base64Encode(file.bytes);
+          parts.add({
+            'inlineData': {'mimeType': 'application/pdf', 'data': base64Data},
+          });
+          parts.add({'text': 'PDF 파일: ${file.name}'});
+        }
       }
 
       final body = {
@@ -67,14 +83,15 @@ class GeminiService {
         final candidates = result['candidates'] as List<dynamic>?;
 
         if (candidates != null && candidates.isNotEmpty) {
-          final content = candidates.first['content'] as Map<String, dynamic>?;
+          final content =
+              candidates.first['content'] as Map<String, dynamic>?;
           final responseParts = content?['parts'] as List<dynamic>?;
 
           if (responseParts != null && responseParts.isNotEmpty) {
             final keywords = (responseParts.first['text'] as String).trim();
-            debugPrint('[Gemini] PDF 추출 키워드: "$keywords"');
+            debugPrint('[Gemini] 추출 키워드: "$keywords"');
 
-            // 사용자 텍스트 + PDF 키워드 결합
+            // 사용자 텍스트 + 추출 키워드 결합
             if (data.text.trim().isNotEmpty) {
               final combined = '${data.text.trim()}, $keywords';
               debugPrint('[Gemini] 최종 결합 프롬프트: "$combined"');
@@ -94,7 +111,7 @@ class GeminiService {
           ? data.text.trim()
           : 'beautiful aesthetic mood board';
     } catch (e) {
-      debugPrint('[Gemini] PDF 분석 실패: $e');
+      debugPrint('[Gemini] 분석 실패: $e');
       return data.text.trim().isNotEmpty
           ? data.text.trim()
           : 'beautiful aesthetic mood board';
@@ -102,17 +119,30 @@ class GeminiService {
   }
 
   static const String _systemPrompt = '''
-You are a color and mood extraction AI. The user will provide PDF files related to their aesthetic preference ("추구미").
+You are a color and mood extraction AI. The user will provide images and/or PDF files related to their aesthetic preference ("추구미").
 
 Your task:
-1. Analyze the PDF content and extract ONLY the key color palette and mood/atmosphere keywords.
-2. Output a short comma-separated list of English keywords (colors, moods, textures, atmosphere).
-3. Keep it concise: maximum 5-8 keywords.
-4. Do NOT write sentences or explanations - ONLY keywords.
+1. Analyze ALL provided inputs (images, PDFs) and extract ONLY the key color palette and mood/atmosphere keywords.
+2. For images: identify dominant colors, color harmony, lighting mood, and emotional tone.
+3. For PDFs: extract color references, mood descriptions, and atmospheric keywords.
+4. Output a short comma-separated list of English keywords (colors, moods, textures, atmosphere).
+5. Keep it concise: maximum 5-8 keywords.
+6. Do NOT write sentences or explanations - ONLY keywords.
 
 Example outputs:
 - "warm terracotta, golden hour, rustic, earthy brown, cozy"
 - "neon pink, cyberpunk, dark blue, futuristic, chrome"
 - "pastel lavender, soft pink, dreamy, ethereal, film grain"
 ''';
+
+  static String _guessMimeType(String fileName) {
+    final ext = fileName.toLowerCase().split('.').last;
+    return switch (ext) {
+      'png' => 'image/png',
+      'jpg' || 'jpeg' => 'image/jpeg',
+      'webp' => 'image/webp',
+      'gif' => 'image/gif',
+      _ => 'image/jpeg',
+    };
+  }
 }

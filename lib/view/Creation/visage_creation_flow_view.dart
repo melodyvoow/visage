@@ -220,7 +220,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
   Future<void> _analyzeAndGenerate() async {
     // PDF 있으면 Gemini로 키워드 추출, 없으면 텍스트 그대로 사용
     debugPrint('[Flow] 프롬프트 준비 시작 (PDF: ${_promptData!.hasPdf})...');
-    final prompt = await GeminiService.extractPdfKeywords(_promptData!);
+    final prompt = await GeminiService.extractColorMood(_promptData!);
 
     if (!mounted) return;
     _analyzedPrompt = prompt;
@@ -250,7 +250,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
   /// 배경만 생성 (바로 진행 시)
   Future<void> _generateBackgroundOnly() async {
     debugPrint('[Flow] 바로 진행 모드 → 배경만 생성');
-    final prompt = await GeminiService.extractPdfKeywords(_promptData!);
+    final prompt = await GeminiService.extractColorMood(_promptData!);
     if (!mounted) return;
     _analyzedPrompt = prompt;
     debugPrint('[Flow] 배경용 프롬프트: "$prompt"');
