@@ -373,12 +373,11 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
 
       // Step 1: 소스 프로젝트(템플릿) 조회
       const sourceProjectId = 'aBNcKEZlYr0DHlllbHlC';
-      const sourceDatabaseId = 'default';
 
       final sourceProject =
           await NyxProjectDatabaseFirecatCrudController.getProjectDatabase(
             sourceProjectId,
-            database: sourceDatabaseId,
+            database: '',
           );
 
       if (sourceProject == null) {

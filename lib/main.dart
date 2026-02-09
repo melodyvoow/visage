@@ -7,6 +7,7 @@ import 'config/visage_constants.dart';
 import 'config/visage_theme.dart';
 import 'view/Home/visage_home_view.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 /*
 firebase login
 firebase init
@@ -36,7 +37,7 @@ Future<void> main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  runApp(const MainApp());
+  runApp(const ProviderScope(child: MainApp()));
 }
 
 class MainApp extends StatelessWidget {
