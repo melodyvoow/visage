@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -49,7 +48,9 @@ class VisageSvgService {
       debugPrint('[SVG] 생성 시작');
       debugPrint('[SVG] 스타일: $layoutName');
       debugPrint('[SVG] 무드: $moodKeywords');
-      debugPrint('[SVG] 레이아웃 이미지: ${layoutImage != null ? "${layoutImage.length} bytes" : "없음"}');
+      debugPrint(
+        '[SVG] 레이아웃 이미지: ${layoutImage != null ? "${layoutImage.length} bytes" : "없음"}',
+      );
       debugPrint('[SVG] 프롬프트 길이: ${combinedPrompt.length}자');
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
@@ -155,7 +156,9 @@ class VisageSvgService {
         'generationConfig': {'temperature': 0.7, 'maxOutputTokens': 65536},
       };
 
-      debugPrint('[SVG/Gemini] API 호출 시작 (prompt: ${prompt.length}자, 이미지: ${layoutImage != null})');
+      debugPrint(
+        '[SVG/Gemini] API 호출 시작 (prompt: ${prompt.length}자, 이미지: ${layoutImage != null})',
+      );
 
       final response = await http.post(
         url,

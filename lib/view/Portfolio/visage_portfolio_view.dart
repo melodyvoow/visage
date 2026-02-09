@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:nyx_kernel/nyx_kernel.dart';
 import 'package:nyx_kernel/Firecat/viewmodel/NyxProject/nyx_project_ux_card.dart';
+import 'package:nyx_kernel/Firecat/viewmodel/NyxMember/nyx_member_firecat_crud_controller.dart';
 import 'package:visage/view/Creation/visage_creation_flow_view.dart';
 import 'package:visage/widget/glass_container.dart';
 
@@ -145,6 +146,27 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
           );
         },
         transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
+  }
+
+  /// 프로젝트를 NyxCanvasView로 열기
+  Future<void> _navigateToCanvas(NyxProjectUXThumbCardStore project) async {
+    final uid = NyxMemberFirecatAuthController.getCurrentUserUid();
+    if (uid == null) return;
+
+    final member = await NyxMemberFirecatCrudController.getMember(uid);
+    if (member == null || !mounted) return;
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NyxCanvasView(
+          projectUXThumbCardStore: project,
+          playerUXThumbCardStore: member,
+          databaseId: NyxConstants.databaseName,
+          onStart: () {},
+        ),
       ),
     );
   }
@@ -508,29 +530,8 @@ class _VisagePortfolioViewState extends State<VisagePortfolioView>
 
   void _onCardTap(int index) {
     final card = _cards[index];
-    final data = card.projectData;
-    if (data == null) return;
-
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'detail',
-      barrierColor: Colors.black.withOpacity(0.7),
-      transitionDuration: const Duration(milliseconds: 300),
-      transitionBuilder: (context, animation, _, child) {
-        return FadeTransition(
-          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.92, end: 1.0).animate(
-              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-            ),
-            child: child,
-          ),
-        );
-      },
-      pageBuilder: (context, _, __) =>
-          _DetailDialog(data: data, docId: card.documentRef?.id ?? ''),
-    );
+    if (card.projectData == null) return;
+    _navigateToCanvas(card);
   }
 
   Widget _buildDeleteConfirm(BuildContext ctx) {
@@ -873,170 +874,6 @@ class _FallbackThumb extends StatelessWidget {
           color: Colors.white.withOpacity(0.25),
           size: 32,
         ),
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// 상세 보기 다이얼로그
-// ═══════════════════════════════════════════════════════════════
-
-class _DetailDialog extends StatelessWidget {
-  final NyxProjectStore data;
-  final String docId;
-
-  const _DetailDialog({required this.data, required this.docId});
-
-  @override
-  Widget build(BuildContext context) {
-    final thumbUrl = data.ee_image_thumb_url ?? '';
-    final prompt = data.ee_name;
-    final style = data.ee_agent_type ?? '';
-    final date = data.sys_reg_date;
-    final ratio = data.ee_agent_ratio ?? '';
-
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32),
-          child: Material(
-            color: Colors.transparent,
-            child: GlassContainer(
-              borderRadius: 28,
-              blur: 40,
-              opacity: 0.18,
-              enableShadow: true,
-              padding: EdgeInsets.zero,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 이미지
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(28),
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: thumbUrl.isNotEmpty
-                          ? Image.network(thumbUrl, fit: BoxFit.cover)
-                          : Container(
-                              color: Colors.white.withOpacity(0.05),
-                              child: Icon(
-                                Icons.image_not_supported_outlined,
-                                color: Colors.white.withOpacity(0.2),
-                                size: 48,
-                              ),
-                            ),
-                    ),
-                  ),
-
-                  // 정보 섹션
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (prompt.isNotEmpty) ...[
-                          Text(
-                            prompt,
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.85),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              height: 1.5,
-                            ),
-                            maxLines: 4,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-                        // 메타 정보
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _Chip(
-                              label:
-                                  '${date.year}.${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}',
-                              icon: Icons.calendar_today_rounded,
-                            ),
-                            if (style.isNotEmpty)
-                              _Chip(label: style, icon: Icons.palette_outlined),
-                            if (ratio.isNotEmpty)
-                              _Chip(
-                                label: ratio,
-                                icon: Icons.aspect_ratio_rounded,
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        // 닫기 버튼
-                        GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              color: Colors.white.withOpacity(0.08),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.12),
-                              ),
-                            ),
-                            child: const Text(
-                              'Close',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  const _Chip({required this.label, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: Colors.white.withOpacity(0.4)),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.5),
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ],
       ),
     );
   }
