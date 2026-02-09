@@ -15,7 +15,7 @@ import 'package:visage/view/Creation/visage_creation_types.dart';
 class VisageSvgService {
   VisageSvgService._();
 
-  static const String _apiKey = 'AIzaSyC5p5fxEqDBYWtA1Td2waIObaekDeixzik';
+  static const String _apiKey = 'AIzaSyAVGK1hJQtUGCwTfjV7Zu7SuF0TBpuISKg';
   static const String _model = 'gemini-3-pro-preview';
   static const String _baseUrl =
       'https://generativelanguage.googleapis.com/v1beta/models';

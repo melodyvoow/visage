@@ -5,7 +5,7 @@ import 'package:visage/view/Creation/visage_creation_types.dart';
 
 /// Nano Banana (Gemini Image Generation) 서비스
 class NanoBananaService {
-  static const String _apiKey = 'AIzaSyC5p5fxEqDBYWtA1Td2waIObaekDeixzik';
+  static const String _apiKey = 'AIzaSyAVGK1hJQtUGCwTfjV7Zu7SuF0TBpuISKg';
   static const String _model = 'gemini-3-pro-image-preview';
   static const String _baseUrl =
       'https://generativelanguage.googleapis.com/v1beta/models';
@@ -89,7 +89,9 @@ class NanoBananaService {
     try {
       final url = Uri.parse('$_baseUrl/$_model:generateContent?key=$_apiKey');
 
-      debugPrint('[NanoBanana] $label 프롬프트: "${prompt.substring(0, prompt.length.clamp(0, 80))}..."');
+      debugPrint(
+        '[NanoBanana] $label 프롬프트: "${prompt.substring(0, prompt.length.clamp(0, 80))}..."',
+      );
 
       final parts = <Map<String, dynamic>>[];
 
@@ -131,8 +133,7 @@ class NanoBananaService {
         final candidates = result['candidates'] as List<dynamic>?;
 
         if (candidates != null && candidates.isNotEmpty) {
-          final content =
-              candidates.first['content'] as Map<String, dynamic>?;
+          final content = candidates.first['content'] as Map<String, dynamic>?;
           final responseParts = content?['parts'] as List<dynamic>?;
 
           if (responseParts != null) {

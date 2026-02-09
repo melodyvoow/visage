@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:visage/view/Creation/visage_creation_types.dart';
 
 class GeminiService {
-  static const String _apiKey = 'AIzaSyC5p5fxEqDBYWtA1Td2waIObaekDeixzik';
+  static const String _apiKey = 'AIzaSyAVGK1hJQtUGCwTfjV7Zu7SuF0TBpuISKg';
   static const String _model = 'gemini-2.0-flash';
   static const String _baseUrl =
       'https://generativelanguage.googleapis.com/v1beta/models';
@@ -37,8 +37,9 @@ class GeminiService {
       }
 
       // 이미지 파일 첨부
-      final imageFiles =
-          data.files.where((f) => f.type == AttachedFileType.image).toList();
+      final imageFiles = data.files
+          .where((f) => f.type == AttachedFileType.image)
+          .toList();
       if (imageFiles.isNotEmpty) {
         debugPrint('[Gemini] 이미지 ${imageFiles.length}장 분석');
         for (final file in imageFiles) {
@@ -52,8 +53,9 @@ class GeminiService {
       }
 
       // PDF 파일 첨부
-      final pdfFiles =
-          data.files.where((f) => f.type == AttachedFileType.pdf).toList();
+      final pdfFiles = data.files
+          .where((f) => f.type == AttachedFileType.pdf)
+          .toList();
       if (pdfFiles.isNotEmpty) {
         debugPrint('[Gemini] PDF ${pdfFiles.length}개 분석');
         for (final file in pdfFiles) {
@@ -83,8 +85,7 @@ class GeminiService {
         final candidates = result['candidates'] as List<dynamic>?;
 
         if (candidates != null && candidates.isNotEmpty) {
-          final content =
-              candidates.first['content'] as Map<String, dynamic>?;
+          final content = candidates.first['content'] as Map<String, dynamic>?;
           final responseParts = content?['parts'] as List<dynamic>?;
 
           if (responseParts != null && responseParts.isNotEmpty) {
@@ -145,7 +146,8 @@ Example outputs:
     try {
       final url = Uri.parse('$_baseUrl/$_model:generateContent?key=$_apiKey');
 
-      final prompt = '''
+      final prompt =
+          '''
 You are a professional UI/UX curator. Given a user's aesthetic preference (color/mood keywords) and a design style category, recommend the 3 most suitable layouts from the list below.
 
 User's aesthetic: "$aestheticKeywords"
@@ -161,7 +163,9 @@ Rules:
 4. No explanation, no text - ONLY the JSON array.
 ''';
 
-      debugPrint('[Gemini] 레이아웃 추천 요청: style=$styleName, aesthetic=$aestheticKeywords');
+      debugPrint(
+        '[Gemini] 레이아웃 추천 요청: style=$styleName, aesthetic=$aestheticKeywords',
+      );
 
       final body = {
         'contents': [
@@ -185,8 +189,7 @@ Rules:
         final candidates = result['candidates'] as List<dynamic>?;
 
         if (candidates != null && candidates.isNotEmpty) {
-          final content =
-              candidates.first['content'] as Map<String, dynamic>?;
+          final content = candidates.first['content'] as Map<String, dynamic>?;
           final responseParts = content?['parts'] as List<dynamic>?;
 
           if (responseParts != null && responseParts.isNotEmpty) {
