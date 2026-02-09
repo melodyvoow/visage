@@ -27,9 +27,7 @@ class _VisageHomeScratchCardState extends State<VisageHomeScratchCard>
   }
 
   Future<void> _loadSketchImage() async {
-    final ByteData data = await rootBundle.load(
-      'assets/image/example_sketch.png',
-    );
+    final ByteData data = await rootBundle.load('assets/image/main_sketch.jpeg');
     final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
     final frame = await codec.getNextFrame();
     if (mounted) {
@@ -131,7 +129,7 @@ class _VisageHomeScratchCardState extends State<VisageHomeScratchCard>
   // 컴카드 이미지
   Widget _buildColorfulCard() {
     return Image.asset(
-      'assets/image/example.jpeg',
+      'assets/image/main.jpeg',
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
