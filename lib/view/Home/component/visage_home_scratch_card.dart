@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -28,8 +27,9 @@ class _VisageHomeScratchCardState extends State<VisageHomeScratchCard>
   }
 
   Future<void> _loadSketchImage() async {
-    final ByteData data =
-        await rootBundle.load('assets/image/example_sketch.png');
+    final ByteData data = await rootBundle.load(
+      'assets/image/example_sketch.png',
+    );
     final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
     final frame = await codec.getNextFrame();
     if (mounted) {
@@ -137,7 +137,6 @@ class _VisageHomeScratchCardState extends State<VisageHomeScratchCard>
       height: double.infinity,
     );
   }
-
 }
 
 // 스케치 with 마스크 Painter
@@ -182,7 +181,7 @@ class _SketchWithMaskPainter extends CustomPainter {
         final t = i / 15;
         final angle = t * math.pi * 0.5 + random.nextDouble() * 0.3; // 약간 랜덤
         final distance = brushRadius * t * 1.5;
-        
+
         final point = Offset(
           centerPoint!.dx + math.cos(angle) * distance,
           centerPoint!.dy + math.sin(angle) * distance,
@@ -194,21 +193,24 @@ class _SketchWithMaskPainter extends CustomPainter {
         // 타원형 스플래터
         final splatterCount = 8;
         for (int j = 0; j < splatterCount; j++) {
-          final splatterAngle = (j / splatterCount) * 2 * math.pi + random.nextDouble() * 1.2;
-          final splatterDistance = brushRadius * (0.5 + random.nextDouble() * 1.0);
-          
+          final splatterAngle =
+              (j / splatterCount) * 2 * math.pi + random.nextDouble() * 1.2;
+          final splatterDistance =
+              brushRadius * (0.5 + random.nextDouble() * 1.0);
+
           final splatterPoint = Offset(
             point.dx + math.cos(splatterAngle) * splatterDistance,
             point.dy + math.sin(splatterAngle) * splatterDistance,
           );
 
           final splatterWidth = brushRadius * (0.3 + random.nextDouble() * 0.6);
-          final splatterHeight = splatterWidth * (0.2 + random.nextDouble() * 0.3);
+          final splatterHeight =
+              splatterWidth * (0.2 + random.nextDouble() * 0.3);
 
           canvas.save();
           canvas.translate(splatterPoint.dx, splatterPoint.dy);
           canvas.rotate(splatterAngle + random.nextDouble() * 0.5);
-          
+
           canvas.drawOval(
             Rect.fromCenter(
               center: Offset.zero,
@@ -217,7 +219,7 @@ class _SketchWithMaskPainter extends CustomPainter {
             ),
             erasePaint,
           );
-          
+
           canvas.restore();
         }
       }
