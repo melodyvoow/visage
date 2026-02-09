@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:visage/view/Creation/visage_creation_types.dart';
 import 'package:visage/widget/glass_container.dart';
@@ -137,15 +138,72 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     );
   }
 
-  // --- Background image with dark overlay ---
+  // --- Background image with soft orbs ---
   Widget _buildBackground() {
+    final size = MediaQuery.of(context).size;
+
     return Stack(
       children: [
+        // Base image
         SizedBox.expand(
           child: Image.asset('assets/image/visage_bg.png', fit: BoxFit.cover),
         ),
-        // Dark overlay for glass readability
-        Container(color: Colors.black.withOpacity(0.35)),
+        // Very light overlay to soften
+        Container(color: Colors.black.withOpacity(0.12)),
+        // Floating orb – top right (warm pink)
+        Positioned(
+          top: -80,
+          right: -60,
+          child: Container(
+            width: 320,
+            height: 320,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFFEBB5FF).withOpacity(0.30),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Floating orb – bottom left (soft blue)
+        Positioned(
+          bottom: -100,
+          left: -40,
+          child: Container(
+            width: 380,
+            height: 380,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFFB5D4FF).withOpacity(0.25),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Floating orb – center right (peach)
+        Positioned(
+          top: size.height * 0.45,
+          right: size.width * 0.15,
+          child: Container(
+            width: 220,
+            height: 220,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFFFFCBD4).withOpacity(0.18),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -215,15 +273,15 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
             final isCompleted = _indicatorStep > stepIndex;
             return Expanded(
               child: Container(
-                height: 2,
+                height: 1.5,
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
                   gradient: isCompleted
                       ? const LinearGradient(
-                          colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
+                          colors: [Color(0xFF9B6FD6), Color(0xFFD070F0)],
                         )
                       : null,
-                  color: isCompleted ? null : Colors.white.withOpacity(0.1),
+                  color: isCompleted ? null : Colors.white.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
@@ -239,33 +297,45 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
               children: [
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  width: 32,
-                  height: 32,
+                  width: 34,
+                  height: 34,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: (isActive || isCompleted)
                         ? const LinearGradient(
-                            colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF9B6FD6), Color(0xFFD070F0)],
                           )
-                        : null,
-                    color: (isActive || isCompleted)
-                        ? null
-                        : Colors.white.withOpacity(0.08),
+                        : LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white.withOpacity(0.18),
+                              Colors.white.withOpacity(0.08),
+                            ],
+                          ),
                     border: Border.all(
                       color: (isActive || isCompleted)
-                          ? Colors.transparent
-                          : Colors.white.withOpacity(0.2),
-                      width: 1.5,
+                          ? Colors.white.withOpacity(0.3)
+                          : Colors.white.withOpacity(0.25),
+                      width: 0.8,
                     ),
                     boxShadow: isActive
                         ? [
                             BoxShadow(
-                              color: const Color(0xFF7B2FBE).withOpacity(0.4),
-                              blurRadius: 12,
-                              spreadRadius: 2,
+                              color: const Color(0xFF9B6FD6).withOpacity(0.35),
+                              blurRadius: 16,
+                              spreadRadius: 1,
                             ),
                           ]
-                        : null,
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.06),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                   ),
                   child: Center(
                     child: isCompleted
@@ -430,21 +500,21 @@ class _GlassLoadingIndicatorState extends State<_GlassLoadingIndicator>
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 80,
-      height: 80,
+      width: 88,
+      height: 88,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Glow background
+          // Soft glow
           Container(
-            width: 80,
-            height: 80,
+            width: 88,
+            height: 88,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF7B2FBE).withOpacity(0.3),
-                  blurRadius: 24,
+                  color: const Color(0xFF9B6FD6).withOpacity(0.25),
+                  blurRadius: 32,
                   spreadRadius: 4,
                 ),
               ],
@@ -454,28 +524,45 @@ class _GlassLoadingIndicatorState extends State<_GlassLoadingIndicator>
           RotationTransition(
             turns: _controller,
             child: Container(
-              width: 80,
-              height: 80,
+              width: 88,
+              height: 88,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: SweepGradient(
                   colors: [
-                    const Color(0xFF7B2FBE),
-                    const Color(0xFFE040FB),
-                    const Color(0xFF7B2FBE).withOpacity(0.0),
+                    const Color(0xFF9B6FD6),
+                    const Color(0xFFD070F0),
+                    const Color(0xFFB5D4FF).withOpacity(0.4),
+                    const Color(0xFF9B6FD6).withOpacity(0.0),
                   ],
-                  stops: const [0.0, 0.5, 1.0],
+                  stops: const [0.0, 0.35, 0.65, 1.0],
                 ),
               ),
             ),
           ),
-          // Inner circle (creates ring effect)
-          Container(
-            width: 64,
-            height: 64,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFF0A0A14),
+          // Inner frosted glass circle
+          ClipOval(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.22),
+                      Colors.white.withOpacity(0.10),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.25),
+                    width: 0.8,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
