@@ -22,6 +22,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
 
   // Flow data
   PromptData? _promptData;
+  List<Uint8List> _generatedImages = [];
 
   // Dynamic background
   Uint8List? _generatedBackground;
@@ -54,9 +55,9 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       // Has image in attachments → go directly to upload step
       _goToStep(CreationStep.imageUpload);
     } else {
-      // No image → generate images
+      // No image → generate aesthetic images
       _goToStep(CreationStep.imageGeneration);
-      _simulateImageGeneration();
+      _generateAestheticImages();
     }
   }
 
@@ -73,9 +74,14 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     }
   }
 
-  Future<void> _simulateImageGeneration() async {
-    await Future.delayed(const Duration(seconds: 2));
+  Future<void> _generateAestheticImages() async {
+    final prompt = _promptData?.text ?? '';
+    final images = await ImagenService.generateAestheticImages(prompt);
+
     if (mounted) {
+      setState(() {
+        _generatedImages = images;
+      });
       _goToStep(CreationStep.imageSelection);
     }
   }
@@ -86,7 +92,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
 
   void _onRegenerateImages() {
     _goToStep(CreationStep.imageGeneration);
-    _simulateImageGeneration();
+    _generateAestheticImages();
   }
 
   void _onCompositeImageUploaded(Uint8List? image) {
@@ -106,6 +112,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       _currentStep = CreationStep.promptInput;
       _isForward = false;
       _promptData = null;
+      _generatedImages = [];
       _generatedBackground = null;
     });
   }
@@ -430,6 +437,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
       case CreationStep.imageSelection:
         child = VisageImageSelectStep(
           key: const ValueKey('imageSelection'),
+          images: _generatedImages,
           onImageSelected: _onImageSelected,
           onRegenerate: _onRegenerateImages,
         );

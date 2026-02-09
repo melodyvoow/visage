@@ -25,10 +25,7 @@ class ImagenService {
           'instances': [
             {'prompt': bgPrompt},
           ],
-          'parameters': {
-            'sampleCount': 1,
-            'aspectRatio': '16:9',
-          },
+          'parameters': {'sampleCount': 1, 'aspectRatio': '16:9'},
         }),
       );
 
@@ -45,7 +42,9 @@ class ImagenService {
           }
         }
       } else {
-        debugPrint('Imagen API error [${response.statusCode}]: ${response.body}');
+        debugPrint(
+          'Imagen API error [${response.statusCode}]: ${response.body}',
+        );
       }
 
       return null;
@@ -53,6 +52,61 @@ class ImagenService {
       debugPrint('Background generation failed: $e');
       return null;
     }
+  }
+
+  /// 추구미 프롬프트 기반으로 이미지 4개를 생성합니다.
+  static Future<List<Uint8List>> generateAestheticImages(
+    String userPrompt,
+  ) async {
+    try {
+      final url = Uri.parse('$_baseUrl/$_model:predict');
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': _apiKey,
+        },
+        body: jsonEncode({
+          'instances': [
+            {'prompt': _buildAestheticPrompt(userPrompt)},
+          ],
+          'parameters': {'sampleCount': 4, 'aspectRatio': '1:1'},
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final predictions = data['predictions'] as List<dynamic>?;
+
+        if (predictions != null) {
+          return predictions
+              .map(
+                (p) => base64Decode(
+                  (p as Map<String, dynamic>)['bytesBase64Encoded'] as String,
+                ),
+              )
+              .toList();
+        }
+      } else {
+        debugPrint(
+          'Imagen API error [${response.statusCode}]: ${response.body}',
+        );
+      }
+
+      return [];
+    } catch (e) {
+      debugPrint('Aesthetic image generation failed: $e');
+      return [];
+    }
+  }
+
+  /// 추구미 이미지 생성용 프롬프트
+  static String _buildAestheticPrompt(String userPrompt) {
+    return 'Create a beautiful aesthetic comp card image that visually '
+        'represents the style and mood of: "$userPrompt". '
+        'Artistic, visually striking, high quality fashion/mood board style. '
+        'No text overlays.';
   }
 
   /// 사용자 프롬프트를 배경 이미지용 프롬프트로 변환합니다.

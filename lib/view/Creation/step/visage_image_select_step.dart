@@ -1,12 +1,15 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:visage/widget/glass_container.dart';
 
 class VisageImageSelectStep extends StatefulWidget {
+  final List<Uint8List> images;
   final void Function(int index) onImageSelected;
   final VoidCallback onRegenerate;
 
   const VisageImageSelectStep({
     super.key,
+    required this.images,
     required this.onImageSelected,
     required this.onRegenerate,
   });
@@ -19,8 +22,8 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
   int? _selectedIndex;
   int _hoveredIndex = -1;
 
-  // Mock gradient colors for placeholder images
-  static const List<List<Color>> _mockGradients = [
+  // 이미지가 없을 때 사용할 fallback 그라데이션
+  static const List<List<Color>> _fallbackGradients = [
     [Color(0xFF6A1B9A), Color(0xFFE040FB)],
     [Color(0xFF1565C0), Color(0xFF42A5F5)],
     [Color(0xFF00695C), Color(0xFF26A69A)],
@@ -29,6 +32,8 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
 
   @override
   Widget build(BuildContext context) {
+    final imageCount = widget.images.isEmpty ? 4 : widget.images.length;
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 560),
@@ -48,7 +53,9 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
               ),
               const SizedBox(height: 8),
               Text(
-                'AI가 생성한 이미지 중 마음에 드는 것을 선택하세요',
+                widget.images.isEmpty
+                    ? '이미지 생성에 실패했습니다. 다시 시도해주세요.'
+                    : 'AI가 생성한 이미지 중 마음에 드는 것을 선택하세요',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.4),
                   fontSize: 14,
@@ -67,7 +74,7 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
                     mainAxisSpacing: 16,
                     childAspectRatio: 1,
                   ),
-                  itemCount: 4,
+                  itemCount: imageCount,
                   itemBuilder: (context, index) => _buildImageCard(index),
                 ),
               ),
@@ -167,12 +174,13 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
   Widget _buildImageCard(int index) {
     final isSelected = _selectedIndex == index;
     final isHovered = _hoveredIndex == index;
+    final hasImage = index < widget.images.length;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hoveredIndex = index),
       onExit: (_) => setState(() => _hoveredIndex = -1),
       child: GestureDetector(
-        onTap: () => setState(() => _selectedIndex = index),
+        onTap: hasImage ? () => setState(() => _selectedIndex = index) : null,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
@@ -199,37 +207,48 @@ class _VisageImageSelectStepState extends State<VisageImageSelectStep> {
             borderRadius: BorderRadius.circular(18),
             child: Stack(
               children: [
-                // Placeholder gradient
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: _mockGradients[index],
+                // 실제 이미지 또는 fallback 그라데이션
+                if (hasImage)
+                  SizedBox.expand(
+                    child: Image.memory(
+                      widget.images[index],
+                      fit: BoxFit.cover,
+                      gaplessPlayback: true,
                     ),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.auto_awesome,
-                          color: Colors.white.withOpacity(0.5),
-                          size: 36,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '생성된 이미지 ${index + 1}',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                  )
+                else
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors:
+                            _fallbackGradients[index %
+                                _fallbackGradients.length],
+                      ),
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.image_not_supported_outlined,
+                            color: Colors.white.withOpacity(0.5),
+                            size: 36,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Text(
+                            '생성 실패',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.6),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
                 // Selection overlay
                 if (isSelected)
