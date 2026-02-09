@@ -66,8 +66,9 @@ class ImagenService {
     try {
       final url = Uri.parse('$_baseUrl/$_model:predict');
       final prompt =
-          '$analyzedPrompt. Artistic, visually striking, high quality '
-          'fashion/mood board comp card style. No text overlays.';
+          'professional photography of moodboard collage with diverse layout '
+          'with color palettes, and concept pictures and elements related to '
+          '$analyzedPrompt';
 
       debugPrint('[Imagen] 추구미 이미지 생성 프롬프트: "$prompt"');
 
@@ -115,11 +116,10 @@ class ImagenService {
 
   /// 분석된 프롬프트를 배경 이미지용으로 변환합니다.
   static String _buildBackgroundPrompt(String analyzedPrompt) {
-    return 'Create an abstract atmospheric background inspired by: '
+    return 'abstract background that captures the mood and essence of '
         '$analyzedPrompt. '
-        'Soft, ethereal, dreamy quality with beautiful color gradients. '
-        'No text, no people, no faces. '
-        'Blurred artistic background suitable as wallpaper. '
-        'High quality, 16:9 wide format.';
+        'soft, ethereal, dreamy quality with beautiful color gradients. '
+        'no text, no people, no face. '
+        'smooth blurred with grainy background, high quality.';
   }
 }
