@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:nyx_kernel/config/nyx_kernel_constants_config.dart';
 import 'package:nyx_kernel/config/nyx_kernel_theme_config.dart';
+import 'package:nyx_kernel/nyx_kernel.dart';
 import 'package:visage/firebase_options.dart';
 import 'config/visage_constants.dart';
 import 'config/visage_theme.dart';
@@ -37,6 +38,9 @@ Future<void> main() async {
   NyxKernelThemeConfig.initialize(VisageThemeConfig());
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Initialize Nyx services
+  await NyxServiceManager.instance.initializeServices();
 
   runApp(const ProviderScope(child: MainApp()));
 }
