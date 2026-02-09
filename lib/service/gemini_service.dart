@@ -148,7 +148,7 @@ Example outputs:
 
       final prompt =
           '''
-You are a professional UI/UX curator. Given a user's aesthetic preference (color/mood keywords) and a design style category, recommend the 3 most suitable layouts from the list below.
+You are a professional UI/UX curator. Given a user's aesthetic preference (color/mood keywords) and a design style category, recommend the 4 most suitable layouts from the list below.
 
 User's aesthetic: "$aestheticKeywords"
 Design style: "$styleName"
@@ -157,9 +157,9 @@ Available layouts (0-indexed):
 ${layoutDescriptions.asMap().entries.map((e) => '${e.key}: ${e.value.substring(0, e.value.length.clamp(0, 120))}...').join('\n')}
 
 Rules:
-1. Choose exactly 3 layouts that best match the user's color/mood aesthetic.
+1. Choose exactly 4 layouts that best match the user's color/mood aesthetic.
 2. Consider visual harmony between the aesthetic keywords and layout characteristics.
-3. Output ONLY a JSON array of 3 integers (0-based indices). Example: [0, 3, 7]
+3. Output ONLY a JSON array of 4 integers (0-based indices). Example: [0, 3, 5, 7]
 4. No explanation, no text - ONLY the JSON array.
 ''';
 
@@ -205,7 +205,7 @@ Rules:
                   .toList();
               if (list.isNotEmpty) {
                 debugPrint('[Gemini] 추천 레이아웃 인덱스: $list');
-                return list.take(3).toList();
+                return list.take(4).toList();
               }
             }
           }
@@ -216,12 +216,12 @@ Rules:
         );
       }
 
-      // fallback: 첫 3개
-      debugPrint('[Gemini] 추천 실패 → fallback [0, 1, 2]');
-      return [0, 1, 2];
+      // fallback: 첫 4개
+      debugPrint('[Gemini] 추천 실패 → fallback [0, 1, 2, 3]');
+      return [0, 1, 2, 3];
     } catch (e) {
       debugPrint('[Gemini] 레이아웃 추천 예외: $e');
-      return [0, 1, 2];
+      return [0, 1, 2, 3];
     }
   }
 

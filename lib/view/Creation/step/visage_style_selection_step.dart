@@ -4,10 +4,7 @@ import 'package:visage/view/Creation/visage_creation_types.dart';
 class VisageStyleSelectionStep extends StatefulWidget {
   final void Function(DesignStyle style) onStyleSelected;
 
-  const VisageStyleSelectionStep({
-    super.key,
-    required this.onStyleSelected,
-  });
+  const VisageStyleSelectionStep({super.key, required this.onStyleSelected});
 
   @override
   State<VisageStyleSelectionStep> createState() =>
@@ -34,7 +31,7 @@ class _VisageStyleSelectionStepState extends State<VisageStyleSelectionStep> {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 640),
+        constraints: const BoxConstraints(maxWidth: 720),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
@@ -42,18 +39,19 @@ class _VisageStyleSelectionStepState extends State<VisageStyleSelectionStep> {
             children: [
               // Header
               Text(
-                'Select a Design Style',
+                'SELECT A DESIGN STYLE',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
-                'AI가 선택한 스타일에 맞는 최적의 레이아웃을 추천해드릴게요',
+                'AI Will Recommend The Best Layout for Your Selected Style',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.4),
+                  color: Colors.white.withOpacity(0.5),
                   fontSize: 14,
                 ),
               ),
@@ -91,17 +89,16 @@ class _VisageStyleSelectionStepState extends State<VisageStyleSelectionStep> {
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isSelected
-                                    ? const Color(0xFFE040FB)
+                                    ? Colors.white.withOpacity(0.6)
                                     : isHovered
-                                        ? Colors.white.withOpacity(0.3)
-                                        : Colors.white.withOpacity(0.1),
-                                width: isSelected ? 2.5 : 1.5,
+                                    ? Colors.white.withOpacity(0.3)
+                                    : Colors.white.withOpacity(0.1),
+                                width: isSelected ? 3 : 1.5,
                               ),
                               boxShadow: isSelected
                                   ? [
                                       BoxShadow(
-                                        color: const Color(0xFFE040FB)
-                                            .withOpacity(0.3),
+                                        color: Colors.white.withOpacity(0.15),
                                         blurRadius: 20,
                                         spreadRadius: 2,
                                       ),
@@ -109,7 +106,7 @@ class _VisageStyleSelectionStepState extends State<VisageStyleSelectionStep> {
                                   : null,
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(18),
+                              borderRadius: BorderRadius.circular(17),
                               child: Column(
                                 children: [
                                   // Preview gradient area
@@ -131,8 +128,7 @@ class _VisageStyleSelectionStepState extends State<VisageStyleSelectionStep> {
                                   Container(
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(
-                                      color:
-                                          Colors.white.withOpacity(0.06),
+                                      color: Colors.white.withOpacity(0.06),
                                     ),
                                     child: Column(
                                       crossAxisAlignment:
@@ -142,16 +138,18 @@ class _VisageStyleSelectionStepState extends State<VisageStyleSelectionStep> {
                                           children: [
                                             Icon(
                                               _styleIcons[idx],
-                                              color: Colors.white
-                                                  .withOpacity(0.8),
+                                              color: Colors.white.withOpacity(
+                                                0.8,
+                                              ),
                                               size: 18,
                                             ),
                                             const SizedBox(width: 8),
                                             Text(
                                               style.label,
                                               style: TextStyle(
-                                                color: Colors.white
-                                                    .withOpacity(0.9),
+                                                color: Colors.white.withOpacity(
+                                                  0.9,
+                                                ),
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w600,
                                               ),
@@ -162,8 +160,9 @@ class _VisageStyleSelectionStepState extends State<VisageStyleSelectionStep> {
                                         Text(
                                           style.description,
                                           style: TextStyle(
-                                            color: Colors.white
-                                                .withOpacity(0.4),
+                                            color: Colors.white.withOpacity(
+                                              0.4,
+                                            ),
                                             fontSize: 12,
                                             height: 1.4,
                                           ),
@@ -185,44 +184,40 @@ class _VisageStyleSelectionStepState extends State<VisageStyleSelectionStep> {
 
               // Confirm button
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: _selected != null
                     ? () => widget.onStyleSelected(_selected!)
                     : null,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
+                    horizontal: 56,
                     vertical: 16,
                   ),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    gradient: _selected != null
-                        ? const LinearGradient(
-                            colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
-                          )
-                        : null,
+                    borderRadius: BorderRadius.circular(28),
                     color: _selected != null
-                        ? null
-                        : Colors.white.withOpacity(0.05),
+                        ? const Color(0xFF15234A)
+                        : const Color(0xFF15234A).withOpacity(0.4),
                     boxShadow: _selected != null
                         ? [
                             BoxShadow(
-                              color:
-                                  const Color(0xFF7B2FBE).withOpacity(0.4),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
+                              color: const Color(0xFF15234A).withOpacity(0.5),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
                             ),
                           ]
                         : null,
                   ),
                   child: Text(
-                    'Get Layout Recommendations',
+                    'CONFIRM',
                     style: TextStyle(
                       color: _selected != null
                           ? Colors.white
-                          : Colors.white.withOpacity(0.3),
+                          : Colors.white.withOpacity(0.4),
                       fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 2,
                     ),
                   ),
                 ),
@@ -315,9 +310,7 @@ class _VisageStyleSelectionStepState extends State<VisageStyleSelectionStep> {
                       ),
                     ),
                     Expanded(
-                      child: Container(
-                        color: Colors.white.withOpacity(0.08),
-                      ),
+                      child: Container(color: Colors.white.withOpacity(0.08)),
                     ),
                   ],
                 ),

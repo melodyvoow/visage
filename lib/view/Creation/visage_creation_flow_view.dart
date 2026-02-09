@@ -164,25 +164,24 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF7B2FBE), Color(0xFFE040FB)],
-                        ),
+                        borderRadius: BorderRadius.circular(28),
+                        color: const Color(0xFF15234A),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF7B2FBE).withOpacity(0.3),
+                            color: const Color(0xFF15234A).withOpacity(0.5),
                             blurRadius: 16,
                             offset: const Offset(0, 6),
                           ),
                         ],
                       ),
                       child: const Text(
-                        'Proceed with this image',
+                        'PROCEED',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1,
                           decoration: TextDecoration.none,
                         ),
                       ),
@@ -320,7 +319,7 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     _recommendAndGenerateLayouts(style);
   }
 
-  /// Gemini로 추구미에 맞는 레이아웃 3개를 추천받고, NanoBanana로 이미지를 생성합니다.
+  /// Gemini로 추구미에 맞는 레이아웃 4개를 추천받고, NanoBanana로 이미지를 생성합니다.
   Future<void> _recommendAndGenerateLayouts(DesignStyle style) async {
     debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     debugPrint('[Flow] 레이아웃 추천 + 생성 시작');
@@ -919,40 +918,36 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
           if (_showBackButton)
             GestureDetector(
               onTap: _onBack,
-              child: GlassContainer(
-                padding: const EdgeInsets.all(12),
-                borderRadius: 16,
-                blur: 10,
+              child: Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: Colors.white.withOpacity(0.12),
+                ),
                 child: Icon(
                   Icons.arrow_back_ios_new_rounded,
                   color: Colors.white.withOpacity(0.8),
-                  size: 18,
+                  size: 22,
                 ),
               ),
             )
           else
-            const SizedBox(width: 42),
-          const Spacer(),
-          Text(
-            'VISAGE',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.6),
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 4,
-            ),
-          ),
+            const SizedBox(width: 54),
           const Spacer(),
           GestureDetector(
             onTap: () => Navigator.of(context).pop(),
-            child: GlassContainer(
-              padding: const EdgeInsets.all(12),
-              borderRadius: 16,
-              blur: 10,
+            child: Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.white.withOpacity(0.12),
+              ),
               child: Icon(
                 Icons.close_rounded,
                 color: Colors.white.withOpacity(0.8),
-                size: 18,
+                size: 24,
               ),
             ),
           ),
@@ -961,118 +956,149 @@ class _VisageCreationFlowViewState extends State<VisageCreationFlowView> {
     );
   }
 
-  // --- Step indicator (3 steps) ---
+  // --- Step indicator (4 steps) ---
   Widget _buildStepIndicator() {
-    final steps = ['Aesthetic', 'Composite', 'Layout', 'Complete'];
+    final steps = ['Create Moodboard', 'Image Merge', 'Layout', 'Complete'];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 48),
-      child: Row(
-        children: List.generate(steps.length * 2 - 1, (index) {
-          if (index.isOdd) {
-            // Connector line
-            final stepIndex = index ~/ 2;
-            final isCompleted = _indicatorStep > stepIndex;
-            return Expanded(
-              child: Container(
-                height: 1.5,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  gradient: isCompleted
-                      ? const LinearGradient(
-                          colors: [Color(0xFF9B6FD6), Color(0xFFD070F0)],
-                        )
-                      : null,
-                  color: isCompleted ? null : Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(1),
-                ),
-              ),
-            );
-          } else {
-            // Step dot with label
-            final stepIndex = index ~/ 2;
-            final isActive = _indicatorStep == stepIndex;
-            final isCompleted = _indicatorStep > stepIndex;
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final totalWidth = constraints.maxWidth;
+          // 4 circles, 3 connectors: calculate spacing
+          const circleSize = 48.0;
+          const circleCount = 4;
+          final connectorWidth =
+              (totalWidth - circleSize * circleCount) / (circleCount - 1);
 
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: (isActive || isCompleted)
-                        ? const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [Color(0xFF9B6FD6), Color(0xFFD070F0)],
-                          )
-                        : LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Colors.white.withOpacity(0.18),
-                              Colors.white.withOpacity(0.08),
-                            ],
-                          ),
-                    border: Border.all(
-                      color: (isActive || isCompleted)
-                          ? Colors.white.withOpacity(0.3)
-                          : Colors.white.withOpacity(0.25),
-                      width: 0.8,
-                    ),
-                    boxShadow: isActive
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFF9B6FD6).withOpacity(0.35),
-                              blurRadius: 16,
-                              spreadRadius: 1,
-                            ),
-                          ]
-                        : [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.06),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                  ),
-                  child: Center(
-                    child: isCompleted
-                        ? const Icon(
-                            Icons.check_rounded,
-                            color: Colors.white,
-                            size: 16,
-                          )
-                        : Text(
-                            '${stepIndex + 1}',
-                            style: TextStyle(
-                              color: isActive
-                                  ? Colors.white
-                                  : Colors.white.withOpacity(0.4),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  steps[stepIndex],
-                  style: TextStyle(
-                    color: isActive
-                        ? Colors.white.withOpacity(0.9)
-                        : Colors.white.withOpacity(0.4),
-                    fontSize: 12,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                ),
-              ],
-            );
-          }
-        }),
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Top row: circles + connector lines
+              Row(
+                children: List.generate(steps.length * 2 - 1, (index) {
+                  if (index.isOdd) {
+                    final stepIndex = index ~/ 2;
+                    final isCompleted = _indicatorStep > stepIndex;
+                    return SizedBox(
+                      width: connectorWidth,
+                      child: Container(
+                        height: 1.5,
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        color: isCompleted
+                            ? const Color(0xFF15234A)
+                            : Colors.white.withOpacity(0.15),
+                      ),
+                    );
+                  } else {
+                    final stepIndex = index ~/ 2;
+                    final isActive = _indicatorStep == stepIndex;
+                    final isCompleted = _indicatorStep > stepIndex;
+
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: circleSize,
+                      height: circleSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: (isActive || isCompleted)
+                            ? const Color(0xFF15234A)
+                            : Colors.white.withOpacity(0.12),
+                        border: Border.all(
+                          color: (isActive || isCompleted)
+                              ? const Color(0xFF15234A)
+                              : Colors.white.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: isCompleted
+                            ? const Icon(
+                                Icons.check_rounded,
+                                color: Colors.white,
+                                size: 22,
+                              )
+                            : Text(
+                                '${stepIndex + 1}',
+                                style: TextStyle(
+                                  color: isActive
+                                      ? Colors.white
+                                      : Colors.white.withOpacity(0.4),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
+                    );
+                  }
+                }),
+              ),
+              const SizedBox(height: 8),
+              // Bottom row: labels with wider area
+              Row(
+                children: List.generate(steps.length, (stepIndex) {
+                  final isActive = _indicatorStep == stepIndex;
+
+                  if (stepIndex == 0) {
+                    // First label: circle width + half connector
+                    return SizedBox(
+                      width: circleSize + connectorWidth / 2,
+                      child: Text(
+                        steps[stepIndex],
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          color: isActive
+                              ? Colors.white.withOpacity(0.9)
+                              : Colors.white.withOpacity(0.4),
+                          fontSize: 14,
+                          fontWeight: isActive
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    );
+                  } else if (stepIndex == steps.length - 1) {
+                    // Last label: half connector + circle width
+                    return SizedBox(
+                      width: connectorWidth / 2 + circleSize,
+                      child: Text(
+                        steps[stepIndex],
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: isActive
+                              ? Colors.white.withOpacity(0.9)
+                              : Colors.white.withOpacity(0.4),
+                          fontSize: 14,
+                          fontWeight: isActive
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    );
+                  } else {
+                    // Middle labels: half connector + circle + half connector
+                    return SizedBox(
+                      width: connectorWidth + circleSize,
+                      child: Text(
+                        steps[stepIndex],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: isActive
+                              ? Colors.white.withOpacity(0.9)
+                              : Colors.white.withOpacity(0.4),
+                          fontSize: 14,
+                          fontWeight: isActive
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                    );
+                  }
+                }),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -1234,7 +1260,7 @@ class _GlassLoadingIndicatorState extends State<_GlassLoadingIndicator>
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF9B6FD6).withOpacity(0.25),
+                  color: const Color(0xFF15234A).withOpacity(0.25),
                   blurRadius: 32,
                   spreadRadius: 4,
                 ),
@@ -1251,10 +1277,10 @@ class _GlassLoadingIndicatorState extends State<_GlassLoadingIndicator>
                 shape: BoxShape.circle,
                 gradient: SweepGradient(
                   colors: [
-                    const Color(0xFF9B6FD6),
-                    const Color(0xFFD070F0),
+                    const Color(0xFF15234A),
+                    const Color(0xFF2A4080),
                     const Color(0xFFB5D4FF).withOpacity(0.4),
-                    const Color(0xFF9B6FD6).withOpacity(0.0),
+                    const Color(0xFF15234A).withOpacity(0.0),
                   ],
                   stops: const [0.0, 0.35, 0.65, 1.0],
                 ),
