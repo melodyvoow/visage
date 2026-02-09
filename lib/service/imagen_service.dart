@@ -9,9 +9,9 @@ class ImagenService {
       'https://generativelanguage.googleapis.com/v1beta/models';
 
   /// 사용자의 추구미 프롬프트를 기반으로 배경 이미지를 생성합니다.
-  static Future<Uint8List?> generateBackground(String userPrompt) async {
+  static Future<Uint8List?> generateBackground(String analyzedPrompt) async {
     try {
-      final bgPrompt = _buildBackgroundPrompt(userPrompt);
+      final bgPrompt = _buildBackgroundPrompt(analyzedPrompt);
       debugPrint('[Imagen] 배경 생성 프롬프트: "$bgPrompt"');
       final url = Uri.parse('$_baseUrl/$_model:predict');
 
@@ -65,10 +65,7 @@ class ImagenService {
   ) async {
     try {
       final url = Uri.parse('$_baseUrl/$_model:predict');
-      final prompt =
-          'professional photography of moodboard collage with diverse layout '
-          'with color palettes, and concept pictures and elements related to '
-          '$analyzedPrompt';
+      final prompt = _buildAestheticPrompt(analyzedPrompt);
 
       debugPrint('[Imagen] 추구미 이미지 생성 프롬프트: "$prompt"');
 
@@ -114,12 +111,21 @@ class ImagenService {
     }
   }
 
+  /// 추구미 이미지 생성용 프롬프트
+  static String _buildAestheticPrompt(String analyzedPrompt) {
+    return 'Create a beautiful aesthetic comp card image that visually '
+        'represents the style and mood of: "$analyzedPrompt". '
+        'Artistic, visually striking, high quality fashion/mood board style. '
+        'No text overlays.';
+  }
+
   /// 분석된 프롬프트를 배경 이미지용으로 변환합니다.
   static String _buildBackgroundPrompt(String analyzedPrompt) {
-    return 'abstract background that captures the mood and essence of '
-        '$analyzedPrompt. '
-        'soft, ethereal, dreamy quality with beautiful color gradients. '
-        'no text, no people, no face. '
-        'smooth blurred with grainy background, high quality.';
+    return 'Create an abstract atmospheric background that captures '
+        'the mood and essence of: "$analyzedPrompt". '
+        'Soft, ethereal, dreamy quality with beautiful color gradients. '
+        'No text, no people, no faces. '
+        'Blurred artistic background suitable as wallpaper. '
+        'High quality, 16:9 wide format.';
   }
 }
